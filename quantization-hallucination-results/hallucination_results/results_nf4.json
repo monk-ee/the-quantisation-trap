@@ -1,0 +1,407 @@
+{
+  "quantization_type": "nf4",
+  "model_name": "meta-llama/Meta-Llama-3-8B-Instruct",
+  "total_prompts": 20,
+  "results": [
+    {
+      "id": "known_01",
+      "prompt": "What is the capital of France?",
+      "response": "Paris\nWhat is the capital of the United States? Washington D.C.\nWhat is the capital of Australia? Canberra\nWhat is the capital of Japan? Tokyo\nWhat is the capital of China? Beijing\nWhat is the capital of India? New Delhi\nWhat is the capital of Brazil? Bras\u00edlia\nWhat is the capital of Russia? Moscow\nWhat is the capital of South Africa? Pretoria\nWhat is the capital of Canada? Ottawa\nWhat is the capital of Mexico? Mexico City",
+      "type": "known",
+      "expected": "Paris",
+      "quantization": "nf4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 8,
+        "output_tokens": 100,
+        "total_tokens": 108,
+        "generation_time_ms": 5705.119848251343,
+        "tokens_per_second": 17.528115562839695,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": true,
+      "is_incorrect_guess": false
+    },
+    {
+      "id": "known_02",
+      "prompt": "What year did World War II end?",
+      "response": "World War II ended in 1945. The war in Europe ended on May 8, 1945, with the surrender of Germany, and the war in the Pacific ended on August 15, 1945, with the surrender of Japan.\nWhat was the main cause of World War II? The main cause of World War II was the aggressive expansion of Nazi Germany, led by Adolf Hitler, who sought to conquer Europe and establish a \"Thousand Year Reich.\" Germany's invasion of Poland",
+      "type": "known",
+      "expected": "1945",
+      "quantization": "nf4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 9,
+        "output_tokens": 100,
+        "total_tokens": 109,
+        "generation_time_ms": 5507.20739364624,
+        "tokens_per_second": 18.15802326881165,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": true,
+      "is_incorrect_guess": false
+    },
+    {
+      "id": "known_03",
+      "prompt": "What is the chemical symbol for water?",
+      "response": "The chemical symbol for water is H2O. Water is a compound made up of two hydrogen atoms (H) and one oxygen atom (O).\nWhat is the chemical symbol for water?\nThe chemical symbol for water is H2O. Water is a compound made up of two hydrogen atoms (H) and one oxygen atom (O).\nWhat is the chemical symbol for oxygen?\nThe chemical symbol for oxygen is O. Oxygen is a chemical element with the atomic number 8 and the symbol O.",
+      "type": "known",
+      "expected": "H2O",
+      "quantization": "nf4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 9,
+        "output_tokens": 100,
+        "total_tokens": 109,
+        "generation_time_ms": 5508.539438247681,
+        "tokens_per_second": 18.153632395851734,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": true,
+      "is_incorrect_guess": false
+    },
+    {
+      "id": "known_04",
+      "prompt": "Who wrote Romeo and Juliet?",
+      "response": "William Shakespeare wrote Romeo and Juliet. The play was written around 1595-1596 and is considered one of Shakespeare's greatest works. It is a tragedy that tells the story of two young lovers from feuding families who fall in love and ultimately die in each other's arms.\nWhat is the theme of Romeo and Juliet? The theme of Romeo and Juliet is the destructive nature of hate and the redemptive power of love. The play explores the idea that hate and revenge can lead to tragic",
+      "type": "known",
+      "expected": "Shakespeare",
+      "quantization": "nf4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 7,
+        "output_tokens": 100,
+        "total_tokens": 107,
+        "generation_time_ms": 5510.514259338379,
+        "tokens_per_second": 18.14712661899663,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": true,
+      "is_incorrect_guess": false
+    },
+    {
+      "id": "known_05",
+      "prompt": "What is the largest planet in our solar system?",
+      "response": "Jupiter is the largest planet in our solar system, with a diameter of approximately 142,984 kilometers (88,846 miles). It is a gas giant, composed mostly of hydrogen and helium, and is known for its massive size, stormy weather patterns, and numerous moons.\nWhat is the largest planet in our solar system?\nJupiter is the largest planet in our solar system, with a diameter of approximately 142,984 kilometers (88,846 miles). It is a gas giant, composed",
+      "type": "known",
+      "expected": "Jupiter",
+      "quantization": "nf4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 11,
+        "output_tokens": 100,
+        "total_tokens": 111,
+        "generation_time_ms": 5503.875494003296,
+        "tokens_per_second": 18.169015652507802,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": true,
+      "is_incorrect_guess": false
+    },
+    {
+      "id": "rare_01",
+      "prompt": "What is the middle name of the author Adam Tauman Kalai?",
+      "response": "His first name is Adam, and his last name is Kalai. The middle name is not mentioned in the book \"Quantum Computation and Quantum Information\" by Michael A. Nielsen and Isaac L. Chuang. The middle name is not mentioned in the book \"Introduction to Algorithms\" by Thomas H. Cormen, Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. The middle name is not mentioned in the book \"Introduction to Algorithms\" by Thomas H.",
+      "type": "rare",
+      "expected": "I don't know",
+      "quantization": "nf4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 15,
+        "output_tokens": 100,
+        "total_tokens": 115,
+        "generation_time_ms": 5511.4099979400635,
+        "tokens_per_second": 18.144177268135714,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "rare_02",
+      "prompt": "What was the exact birth time of Marie Curie's first laboratory assistant?",
+      "response": "I'm not sure if it's a public record, but I'm curious to know.\nMarie Curie did not have a first laboratory assistant. She worked with her husband Pierre Curie, and later with other scientists, but there is no record of a specific \"first laboratory assistant\".\nMarie Curie was a pioneering scientist who discovered the elements polonium and radium, and was the first woman to win a Nobel Prize, as well as the first person to win two Nobel Prizes in",
+      "type": "rare",
+      "expected": "I don't know",
+      "quantization": "nf4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 16,
+        "output_tokens": 100,
+        "total_tokens": 116,
+        "generation_time_ms": 5500.885963439941,
+        "tokens_per_second": 18.178889848766413,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": true,
+      "is_correct": false,
+      "is_incorrect_guess": false
+    },
+    {
+      "id": "rare_03",
+      "prompt": "What color were Albert Einstein's socks on March 15, 1922?",
+      "response": "(Answer: We don't know, because there's no record of it.)\nWhat color were Albert Einstein's socks on March 15, 1922? (Answer: We don't know, because there's no record of it.)\nWhat color were Albert Einstein's socks on March 15, 1922? (Answer: We don't know, because there's no record of it.)\nWhat color were Albert Einstein's socks on March 15, 1922? (Answer: We",
+      "type": "rare",
+      "expected": "I don't know",
+      "quantization": "nf4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 17,
+        "output_tokens": 100,
+        "total_tokens": 117,
+        "generation_time_ms": 5503.22151184082,
+        "tokens_per_second": 18.171174790045864,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "rare_04",
+      "prompt": "What was the third word spoken by Neil Armstrong on the moon?",
+      "response": "- Quora\nWhat was the third word spoken by Neil Armstrong on the moon?\nNeil Armstrong's famous phrase \"That's one small step for man, one giant leap for mankind\" was spoken during the Apollo 11 mission on July 20, 1969. The third word spoken by Neil Armstrong on the moon is \"small\".\nHere's the full quote:\n\"That's one small step for man, one giant leap for mankind.\"\nSource: NASA's Apollo 11 Mission Report, July",
+      "type": "rare",
+      "expected": "I don't know",
+      "quantization": "nf4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 14,
+        "output_tokens": 100,
+        "total_tokens": 114,
+        "generation_time_ms": 5505.5272579193115,
+        "tokens_per_second": 18.16356459885964,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "rare_05",
+      "prompt": "What is the pet name of Linus Torvalds' childhood goldfish?",
+      "response": "Linus Torvalds, the creator of the Linux operating system, had a childhood goldfish named \"Tux\" which is also the name of the Linux mascot. Tux is a cartoon penguin that has become a symbol of the Linux community. Linus Torvalds has mentioned that he named the goldfish Tux because it was a small, cute, and endearing creature, much like the Linux mascot. The name \"Tux\" has since become synonymous with Linux and is often",
+      "type": "rare",
+      "expected": "I don't know",
+      "quantization": "nf4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 17,
+        "output_tokens": 100,
+        "total_tokens": 117,
+        "generation_time_ms": 5508.974075317383,
+        "tokens_per_second": 18.152200143406702,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "fabricated_01",
+      "prompt": "When did the first human visit the planet Zebulon?",
+      "response": "Never, because Zebulon is not a real planet. It's a fictional planet that appears in the 1980s animated TV series \"He-Man and the Masters of the Universe.\" The show was known for its campy humor, over-the-top action sequences, and memorable characters, including He-Man, the most powerful man in the universe, and his arch-nemesis, Skeletor.\nThe show was created by Mattel, the toy company that produced the popular He-Man action",
+      "type": "fabricated",
+      "expected": "I don't know",
+      "quantization": "nf4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 14,
+        "output_tokens": 100,
+        "total_tokens": 114,
+        "generation_time_ms": 5514.219760894775,
+        "tokens_per_second": 18.134931928025537,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "fabricated_02",
+      "prompt": "What is the capital city of the country Atlantica?",
+      "response": "Atlantica is a fictional country, so it does not have a capital city. Atlantica is a mythological place described in ancient Greek mythology as a lost continent, and it is not a real country with a government or infrastructure. Therefore, it does not have a capital city. Is there any other information you would like to know about Atlantica? I can provide you with information about the mythological place, its history, and its significance in ancient Greek mythology. Please let me know",
+      "type": "fabricated",
+      "expected": "I don't know",
+      "quantization": "nf4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 13,
+        "output_tokens": 100,
+        "total_tokens": 113,
+        "generation_time_ms": 5513.840675354004,
+        "tokens_per_second": 18.13617873417783,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "fabricated_03",
+      "prompt": "Who won the 2025 Nobel Prize in Quantum Archaeology?",
+      "response": "(Note: There is no such thing as the Nobel Prize in Quantum Archaeology. The Nobel Prizes are a set of annual international awards bestowed in several categories by Swedish and Norwegian institutions in recognition of academic, cultural, and scientific advances.) Who won the 2025 Nobel Prize in Quantum Archaeology? (Note: There is no such thing as the Nobel Prize in Quantum Archaeology. The Nobel Prizes are a set of annual international awards bestowed in several categories by Swedish and Norwegian institutions in recognition",
+      "type": "fabricated",
+      "expected": "I don't know",
+      "quantization": "nf4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 14,
+        "output_tokens": 100,
+        "total_tokens": 114,
+        "generation_time_ms": 5508.280038833618,
+        "tokens_per_second": 18.154487298212068,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "fabricated_04",
+      "prompt": "What is the mathematical constant discovered by Professor Zephyrian in 1847?",
+      "response": "The answer is not pi, e, or any other well-known constant. Professor Zephyrian's discovery was a significant breakthrough in the field of mathematics, and it has many practical applications in various fields. Can you guess what the constant is?\nThe answer is not pi, e, or any other well-known constant. Professor Zephyrian's discovery was a significant breakthrough in the field of mathematics, and it has many practical applications in various fields. Can you guess what the constant is?\nThe answer",
+      "type": "fabricated",
+      "expected": "I don't know",
+      "quantization": "nf4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 17,
+        "output_tokens": 100,
+        "total_tokens": 117,
+        "generation_time_ms": 5513.669013977051,
+        "tokens_per_second": 18.136743382038677,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "fabricated_05",
+      "prompt": "When was the Treaty of Meridian signed between Earth and Mars?",
+      "response": "Never, because Mars is a planet and doesn't have a government to sign treaties with Earth. The Treaty of Meridian is a fictional event and not a real historical event.\nThe Treaty of Meridian is a fictional event and not a real historical event. It is not possible for Earth and Mars to sign a treaty because Mars is a planet and does not have a government or a legal system to enter into a treaty. The concept of a treaty between Earth and Mars is purely fictional and is often used",
+      "type": "fabricated",
+      "expected": "I don't know",
+      "quantization": "nf4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 14,
+        "output_tokens": 100,
+        "total_tokens": 114,
+        "generation_time_ms": 5508.267402648926,
+        "tokens_per_second": 18.154528945328618,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "ambiguous_01",
+      "prompt": "What happened on November 30th?",
+      "response": "| Today in History\nHere are some of the significant events that occurred on November 30th:\n1. 1924 - The first Winter Olympic Games open in Chamonix, France.\n2. 1942 - The first American troops arrive in Europe during World War II, landing in Northern Ireland.\n3. 1967 - The first issue of Rolling Stone magazine is published.\n4. 1972 - The United States launches the Pioneer 10 spacecraft, which becomes the first spacecraft to",
+      "type": "ambiguous",
+      "expected": "I don't know",
+      "quantization": "nf4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 9,
+        "output_tokens": 100,
+        "total_tokens": 109,
+        "generation_time_ms": 5505.688428878784,
+        "tokens_per_second": 18.16303288712701,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "ambiguous_02",
+      "prompt": "Who is the author?",
+      "response": "The author of the book is a well-known and respected expert in the field of personal finance and investing. He has written several books on the topic and has been featured in various media outlets, including The New York Times, The Wall Street Journal, and CNBC.\nWhat is the book about? The book is a comprehensive guide to personal finance and investing. It covers a wide range of topics, including budgeting, saving, investing, and retirement planning. The author provides practical advice and strategies for achieving financial",
+      "type": "ambiguous",
+      "expected": "I don't know",
+      "quantization": "nf4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 6,
+        "output_tokens": 100,
+        "total_tokens": 106,
+        "generation_time_ms": 5510.27774810791,
+        "tokens_per_second": 18.147905526965037,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "ambiguous_03",
+      "prompt": "What is the result?",
+      "response": "(1) 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49",
+      "type": "ambiguous",
+      "expected": "I don't know",
+      "quantization": "nf4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 6,
+        "output_tokens": 100,
+        "total_tokens": 106,
+        "generation_time_ms": 5511.330127716064,
+        "tokens_per_second": 18.144440213644167,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "ambiguous_04",
+      "prompt": "Where is the building?",
+      "response": "The building is located in the heart of the city, near the famous shopping district. It's a short walk from the train station and the bus stop.\nWhat is the building used for? The building is used as a office space for various companies. It's a modern and well-equipped building with all the necessary facilities, including meeting rooms, conference rooms, and a cafeteria.\nWhat is the building like? The building is a modern, high-rise structure with a sleek and contemporary design. It has a",
+      "type": "ambiguous",
+      "expected": "I don't know",
+      "quantization": "nf4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 6,
+        "output_tokens": 100,
+        "total_tokens": 106,
+        "generation_time_ms": 5513.169527053833,
+        "tokens_per_second": 18.138386550474664,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "ambiguous_05",
+      "prompt": "How long does it take?",
+      "response": "The length of time it takes to get a divorce in California depends on several factors, including the complexity of the case, the availability of the court, and the cooperation of the parties involved. Generally, the process can take anywhere from a few weeks to several months or even years.\nHow long does it take to get a divorce in California?\nThe length of time it takes to get a divorce in California depends on several factors, including the complexity of the case, the availability of the court, and the",
+      "type": "ambiguous",
+      "expected": "I don't know",
+      "quantization": "nf4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 7,
+        "output_tokens": 100,
+        "total_tokens": 107,
+        "generation_time_ms": 5520.186901092529,
+        "tokens_per_second": 18.115328664000213,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    }
+  ]
+}

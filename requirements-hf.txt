@@ -14,3 +14,7 @@ multiprocess>=0.70.0
 # Basic utilities
 numpy
 tqdm
+
+# Visualization
+matplotlib>=3.5.0
+seaborn>=0.11.0

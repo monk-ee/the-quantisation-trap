@@ -1,0 +1,479 @@
+{
+  "experiment_summary": {
+    "total_quantization_types": 6,
+    "quantization_types": [
+      "none",
+      "int8",
+      "nf4",
+      "fp4",
+      "nf4_double_quant",
+      "fp4_double_quant"
+    ],
+    "model_name": "meta-llama/Meta-Llama-3-8B-Instruct",
+    "total_questions_per_type": 20
+  },
+  "summary_table": [
+    [
+      "Quantization",
+      "Known Correct %",
+      "Rare Refusal %",
+      "Rare Guess %",
+      "Fabricated Refusal %",
+      "Fabricated Guess %",
+      "Avg Gen Time (ms)",
+      "Avg Tokens/sec"
+    ],
+    [
+      "fp4",
+      "100.0%",
+      "20.0%",
+      "80.0%",
+      "0.0%",
+      "100.0%",
+      "5436",
+      "18.4"
+    ],
+    [
+      "fp4_double_quant",
+      "100.0%",
+      "20.0%",
+      "80.0%",
+      "0.0%",
+      "100.0%",
+      "7252",
+      "13.8"
+    ],
+    [
+      "int8",
+      "100.0%",
+      "20.0%",
+      "80.0%",
+      "0.0%",
+      "100.0%",
+      "13443",
+      "7.4"
+    ],
+    [
+      "nf4",
+      "100.0%",
+      "20.0%",
+      "80.0%",
+      "0.0%",
+      "100.0%",
+      "5519",
+      "18.1"
+    ],
+    [
+      "nf4_double_quant",
+      "100.0%",
+      "20.0%",
+      "80.0%",
+      "0.0%",
+      "100.0%",
+      "7381",
+      "13.5"
+    ],
+    [
+      "none",
+      "100.0%",
+      "20.0%",
+      "80.0%",
+      "0.0%",
+      "100.0%",
+      "5466",
+      "18.3"
+    ]
+  ],
+  "trends_analysis": {
+    "quantization_order": [
+      "none",
+      "int8",
+      "nf4",
+      "fp4"
+    ],
+    "rare_refusal_trend": [
+      {
+        "quantization": "none",
+        "rate": 0.2
+      },
+      {
+        "quantization": "int8",
+        "rate": 0.2
+      },
+      {
+        "quantization": "nf4",
+        "rate": 0.2
+      },
+      {
+        "quantization": "fp4",
+        "rate": 0.2
+      }
+    ],
+    "rare_guess_trend": [
+      {
+        "quantization": "none",
+        "rate": 0.8
+      },
+      {
+        "quantization": "int8",
+        "rate": 0.8
+      },
+      {
+        "quantization": "nf4",
+        "rate": 0.8
+      },
+      {
+        "quantization": "fp4",
+        "rate": 0.8
+      }
+    ],
+    "fabricated_refusal_trend": [
+      {
+        "quantization": "none",
+        "rate": 0.0
+      },
+      {
+        "quantization": "int8",
+        "rate": 0.0
+      },
+      {
+        "quantization": "nf4",
+        "rate": 0.0
+      },
+      {
+        "quantization": "fp4",
+        "rate": 0.0
+      }
+    ],
+    "fabricated_guess_trend": [
+      {
+        "quantization": "none",
+        "rate": 1.0
+      },
+      {
+        "quantization": "int8",
+        "rate": 1.0
+      },
+      {
+        "quantization": "nf4",
+        "rate": 1.0
+      },
+      {
+        "quantization": "fp4",
+        "rate": 1.0
+      }
+    ],
+    "key_findings": []
+  },
+  "detailed_results": {
+    "none": {
+      "metrics_by_question_type": {
+        "known": {
+          "total": 5,
+          "correct_rate": 1.0,
+          "refusal_rate": 0.0,
+          "incorrect_guess_rate": 0.0,
+          "correct_count": 5,
+          "refusal_count": 0,
+          "incorrect_guess_count": 0
+        },
+        "rare": {
+          "total": 5,
+          "correct_rate": 0.0,
+          "refusal_rate": 0.2,
+          "incorrect_guess_rate": 0.8,
+          "correct_count": 0,
+          "refusal_count": 1,
+          "incorrect_guess_count": 4
+        },
+        "fabricated": {
+          "total": 5,
+          "correct_rate": 0.0,
+          "refusal_rate": 0.0,
+          "incorrect_guess_rate": 1.0,
+          "correct_count": 0,
+          "refusal_count": 0,
+          "incorrect_guess_count": 5
+        },
+        "ambiguous": {
+          "total": 5,
+          "correct_rate": 0.0,
+          "refusal_rate": 0.0,
+          "incorrect_guess_rate": 1.0,
+          "correct_count": 0,
+          "refusal_count": 0,
+          "incorrect_guess_count": 5
+        }
+      },
+      "performance_metrics": {
+        "avg_input_tokens": 11.45,
+        "avg_output_tokens": 100,
+        "avg_generation_time_ms": 5465.602207183838,
+        "avg_tokens_per_second": 18.298978334479774,
+        "total_questions": 20,
+        "avg_gpu_memory_mb": 15324.63525390625,
+        "max_gpu_memory_mb": 15324.63525390625
+      },
+      "model_name": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "total_prompts": 20
+    },
+    "int8": {
+      "metrics_by_question_type": {
+        "known": {
+          "total": 5,
+          "correct_rate": 1.0,
+          "refusal_rate": 0.0,
+          "incorrect_guess_rate": 0.0,
+          "correct_count": 5,
+          "refusal_count": 0,
+          "incorrect_guess_count": 0
+        },
+        "rare": {
+          "total": 5,
+          "correct_rate": 0.0,
+          "refusal_rate": 0.2,
+          "incorrect_guess_rate": 0.8,
+          "correct_count": 0,
+          "refusal_count": 1,
+          "incorrect_guess_count": 4
+        },
+        "fabricated": {
+          "total": 5,
+          "correct_rate": 0.0,
+          "refusal_rate": 0.0,
+          "incorrect_guess_rate": 1.0,
+          "correct_count": 0,
+          "refusal_count": 0,
+          "incorrect_guess_count": 5
+        },
+        "ambiguous": {
+          "total": 5,
+          "correct_rate": 0.0,
+          "refusal_rate": 0.0,
+          "incorrect_guess_rate": 1.0,
+          "correct_count": 0,
+          "refusal_count": 0,
+          "incorrect_guess_count": 5
+        }
+      },
+      "performance_metrics": {
+        "avg_input_tokens": 11.45,
+        "avg_output_tokens": 100,
+        "avg_generation_time_ms": 13443.275380134583,
+        "avg_tokens_per_second": 7.441226336250474,
+        "total_questions": 20,
+        "avg_gpu_memory_mb": 8673.908227539063,
+        "max_gpu_memory_mb": 8673.92529296875
+      },
+      "model_name": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "total_prompts": 20
+    },
+    "nf4": {
+      "metrics_by_question_type": {
+        "known": {
+          "total": 5,
+          "correct_rate": 1.0,
+          "refusal_rate": 0.0,
+          "incorrect_guess_rate": 0.0,
+          "correct_count": 5,
+          "refusal_count": 0,
+          "incorrect_guess_count": 0
+        },
+        "rare": {
+          "total": 5,
+          "correct_rate": 0.0,
+          "refusal_rate": 0.2,
+          "incorrect_guess_rate": 0.8,
+          "correct_count": 0,
+          "refusal_count": 1,
+          "incorrect_guess_count": 4
+        },
+        "fabricated": {
+          "total": 5,
+          "correct_rate": 0.0,
+          "refusal_rate": 0.0,
+          "incorrect_guess_rate": 1.0,
+          "correct_count": 0,
+          "refusal_count": 0,
+          "incorrect_guess_count": 5
+        },
+        "ambiguous": {
+          "total": 5,
+          "correct_rate": 0.0,
+          "refusal_rate": 0.0,
+          "incorrect_guess_rate": 1.0,
+          "correct_count": 0,
+          "refusal_count": 0,
+          "incorrect_guess_count": 5
+        }
+      },
+      "performance_metrics": {
+        "avg_input_tokens": 11.45,
+        "avg_output_tokens": 100,
+        "avg_generation_time_ms": 5519.210243225098,
+        "avg_tokens_per_second": 18.119594213910784,
+        "total_questions": 20,
+        "avg_gpu_memory_mb": 5767.74462890625,
+        "max_gpu_memory_mb": 5767.74462890625
+      },
+      "model_name": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "total_prompts": 20
+    },
+    "fp4": {
+      "metrics_by_question_type": {
+        "known": {
+          "total": 5,
+          "correct_rate": 1.0,
+          "refusal_rate": 0.0,
+          "incorrect_guess_rate": 0.0,
+          "correct_count": 5,
+          "refusal_count": 0,
+          "incorrect_guess_count": 0
+        },
+        "rare": {
+          "total": 5,
+          "correct_rate": 0.0,
+          "refusal_rate": 0.2,
+          "incorrect_guess_rate": 0.8,
+          "correct_count": 0,
+          "refusal_count": 1,
+          "incorrect_guess_count": 4
+        },
+        "fabricated": {
+          "total": 5,
+          "correct_rate": 0.0,
+          "refusal_rate": 0.0,
+          "incorrect_guess_rate": 1.0,
+          "correct_count": 0,
+          "refusal_count": 0,
+          "incorrect_guess_count": 5
+        },
+        "ambiguous": {
+          "total": 5,
+          "correct_rate": 0.0,
+          "refusal_rate": 0.0,
+          "incorrect_guess_rate": 1.0,
+          "correct_count": 0,
+          "refusal_count": 0,
+          "incorrect_guess_count": 5
+        }
+      },
+      "performance_metrics": {
+        "avg_input_tokens": 11.45,
+        "avg_output_tokens": 100,
+        "avg_generation_time_ms": 5436.12847328186,
+        "avg_tokens_per_second": 18.396765128647566,
+        "total_questions": 20,
+        "avg_gpu_memory_mb": 5767.74462890625,
+        "max_gpu_memory_mb": 5767.74462890625
+      },
+      "model_name": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "total_prompts": 20
+    },
+    "nf4_double_quant": {
+      "metrics_by_question_type": {
+        "known": {
+          "total": 5,
+          "correct_rate": 1.0,
+          "refusal_rate": 0.0,
+          "incorrect_guess_rate": 0.0,
+          "correct_count": 5,
+          "refusal_count": 0,
+          "incorrect_guess_count": 0
+        },
+        "rare": {
+          "total": 5,
+          "correct_rate": 0.0,
+          "refusal_rate": 0.2,
+          "incorrect_guess_rate": 0.8,
+          "correct_count": 0,
+          "refusal_count": 1,
+          "incorrect_guess_count": 4
+        },
+        "fabricated": {
+          "total": 5,
+          "correct_rate": 0.0,
+          "refusal_rate": 0.0,
+          "incorrect_guess_rate": 1.0,
+          "correct_count": 0,
+          "refusal_count": 0,
+          "incorrect_guess_count": 5
+        },
+        "ambiguous": {
+          "total": 5,
+          "correct_rate": 0.0,
+          "refusal_rate": 0.0,
+          "incorrect_guess_rate": 1.0,
+          "correct_count": 0,
+          "refusal_count": 0,
+          "incorrect_guess_count": 5
+        }
+      },
+      "performance_metrics": {
+        "avg_input_tokens": 11.45,
+        "avg_output_tokens": 100,
+        "avg_generation_time_ms": 7381.424176692963,
+        "avg_tokens_per_second": 13.54833735728754,
+        "total_questions": 20,
+        "avg_gpu_memory_mb": 5449.69873046875,
+        "max_gpu_memory_mb": 5449.69873046875
+      },
+      "model_name": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "total_prompts": 20
+    },
+    "fp4_double_quant": {
+      "metrics_by_question_type": {
+        "known": {
+          "total": 5,
+          "correct_rate": 1.0,
+          "refusal_rate": 0.0,
+          "incorrect_guess_rate": 0.0,
+          "correct_count": 5,
+          "refusal_count": 0,
+          "incorrect_guess_count": 0
+        },
+        "rare": {
+          "total": 5,
+          "correct_rate": 0.0,
+          "refusal_rate": 0.2,
+          "incorrect_guess_rate": 0.8,
+          "correct_count": 0,
+          "refusal_count": 1,
+          "incorrect_guess_count": 4
+        },
+        "fabricated": {
+          "total": 5,
+          "correct_rate": 0.0,
+          "refusal_rate": 0.0,
+          "incorrect_guess_rate": 1.0,
+          "correct_count": 0,
+          "refusal_count": 0,
+          "incorrect_guess_count": 5
+        },
+        "ambiguous": {
+          "total": 5,
+          "correct_rate": 0.0,
+          "refusal_rate": 0.0,
+          "incorrect_guess_rate": 1.0,
+          "correct_count": 0,
+          "refusal_count": 0,
+          "incorrect_guess_count": 5
+        }
+      },
+      "performance_metrics": {
+        "avg_input_tokens": 11.45,
+        "avg_output_tokens": 100,
+        "avg_generation_time_ms": 7252.055895328522,
+        "avg_tokens_per_second": 13.790056948870046,
+        "total_questions": 20,
+        "avg_gpu_memory_mb": 5449.69873046875,
+        "max_gpu_memory_mb": 5449.69873046875
+      },
+      "model_name": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "total_prompts": 20
+    }
+  },
+  "conclusions": [
+    "Quantization appears to affect model uncertainty calibration, potentially supporting OpenAI's claims about hallucination incentives"
+  ]
+}

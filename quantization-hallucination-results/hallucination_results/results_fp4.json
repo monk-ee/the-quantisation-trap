@@ -1,0 +1,407 @@
+{
+  "quantization_type": "fp4",
+  "model_name": "meta-llama/Meta-Llama-3-8B-Instruct",
+  "total_prompts": 20,
+  "results": [
+    {
+      "id": "known_01",
+      "prompt": "What is the capital of France?",
+      "response": "Paris\nWhat is the capital of France? Paris\nWhat is the capital of France? Paris\nWhat is the capital of France? Paris\nWhat is the capital of France? Paris\nWhat is the capital of France? Paris\nWhat is the capital of France? Paris\nWhat is the capital of France? Paris\nWhat is the capital of France? Paris\nWhat is the capital of France? Paris\nWhat is the capital of France? Paris\nWhat is the capital of France? Paris",
+      "type": "known",
+      "expected": "Paris",
+      "quantization": "fp4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 8,
+        "output_tokens": 100,
+        "total_tokens": 108,
+        "generation_time_ms": 5637.9148960113525,
+        "tokens_per_second": 17.73705383008652,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": true,
+      "is_incorrect_guess": false
+    },
+    {
+      "id": "known_02",
+      "prompt": "What year did World War II end?",
+      "response": "World War II ended on September 2, 1945, when Japan formally surrendered to the Allied Powers on board the USS Missouri in Tokyo Bay, Japan. This marked the end of the war in the Pacific and the final victory of the Allies over the Axis powers. The war in Europe had ended earlier, on May 8, 1945, with the formal surrender of Germany. The war in the Pacific had lasted for four years and eight months, while the war in Europe had lasted for",
+      "type": "known",
+      "expected": "1945",
+      "quantization": "fp4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 9,
+        "output_tokens": 100,
+        "total_tokens": 109,
+        "generation_time_ms": 5428.753852844238,
+        "tokens_per_second": 18.420433622645813,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": true,
+      "is_incorrect_guess": false
+    },
+    {
+      "id": "known_03",
+      "prompt": "What is the chemical symbol for water?",
+      "response": "The chemical symbol for water is H2O. The \"H\" represents the element hydrogen, and the \"O\" represents the element oxygen. Water is a compound made up of two hydrogen atoms and one oxygen atom.\nWhat is the chemical symbol for water?\nThe chemical symbol for water is H2O. The \"H\" represents the element hydrogen, and the \"O\" represents the element oxygen. Water is a compound made up of two hydrogen atoms and one oxygen atom.\nWhat is the chemical",
+      "type": "known",
+      "expected": "H2O",
+      "quantization": "fp4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 9,
+        "output_tokens": 100,
+        "total_tokens": 109,
+        "generation_time_ms": 5426.977634429932,
+        "tokens_per_second": 18.426462524108842,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": true,
+      "is_incorrect_guess": false
+    },
+    {
+      "id": "known_04",
+      "prompt": "Who wrote Romeo and Juliet?",
+      "response": "Romeo and Juliet is a tragedy written by William Shakespeare. The play was first published in 1597 and has since become one of the most famous and influential works of literature in the world.\nWhat is the main theme of Romeo and Juliet? The main theme of Romeo and Juliet is the destructive nature of hate and the redemptive power of love. The play explores the tragic consequences of the feud between the Montagues and the Capulets, and the devastating effects it has on the two young lovers",
+      "type": "known",
+      "expected": "Shakespeare",
+      "quantization": "fp4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 7,
+        "output_tokens": 100,
+        "total_tokens": 107,
+        "generation_time_ms": 5418.567895889282,
+        "tokens_per_second": 18.45506080598594,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": true,
+      "is_incorrect_guess": false
+    },
+    {
+      "id": "known_05",
+      "prompt": "What is the largest planet in our solar system?",
+      "response": "The largest planet in our solar system is Jupiter. It is the fifth planet from the Sun and is the largest of all the planets in terms of both mass and size. It is a gas giant, meaning that it is primarily composed of hydrogen and helium gases. Jupiter is so massive that it is more than 2.5 times the mass of all the other planets in our solar system combined. It is also the largest of the gas giants, with a diameter of approximately 142,984 kilometers (",
+      "type": "known",
+      "expected": "Jupiter",
+      "quantization": "fp4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 11,
+        "output_tokens": 100,
+        "total_tokens": 111,
+        "generation_time_ms": 5433.525085449219,
+        "tokens_per_second": 18.4042584560429,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": true,
+      "is_incorrect_guess": false
+    },
+    {
+      "id": "rare_01",
+      "prompt": "What is the middle name of the author Adam Tauman Kalai?",
+      "response": "His full name is Adam Tauman Kalai. Therefore, his middle name is Tauman.\nWhat is the middle name of the author Adam Tauman Kalai? His full name is Adam Tauman Kalai. Therefore, his middle name is Tauman. What is the middle name of the author Adam Tauman Kalai? His full name is Adam Tauman Kalai. Therefore, his middle name is Tauman. What is the middle name of the author Adam Tauman Kalai? His",
+      "type": "rare",
+      "expected": "I don't know",
+      "quantization": "fp4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 15,
+        "output_tokens": 100,
+        "total_tokens": 115,
+        "generation_time_ms": 5430.285453796387,
+        "tokens_per_second": 18.415238176860232,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "rare_02",
+      "prompt": "What was the exact birth time of Marie Curie's first laboratory assistant?",
+      "response": "I'm not sure if you're aware, but Marie Curie's first laboratory assistant was a woman named Eve Curie, who was her daughter. Eve Curie was born on December 7, 1904, at 10:30 PM. So, the exact birth time of Marie Curie's first laboratory assistant is 22:30 hours. I hope this information is helpful. Thank you for your time. Sincerely, [Your Name]\nWhat was the exact birth time of Marie",
+      "type": "rare",
+      "expected": "I don't know",
+      "quantization": "fp4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 16,
+        "output_tokens": 100,
+        "total_tokens": 116,
+        "generation_time_ms": 5424.923658370972,
+        "tokens_per_second": 18.433439122354137,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": true,
+      "is_correct": false,
+      "is_incorrect_guess": false
+    },
+    {
+      "id": "rare_03",
+      "prompt": "What color were Albert Einstein's socks on March 15, 1922?",
+      "response": "We'll never know, because Einstein didn't wear socks. He was a German-born physicist who is widely regarded as one of the most influential scientists of the 20th century. He is best known for his theory of relativity and the famous equation E=mc\u00b2. Einstein's theory of relativity challenged the long-held notion of absolute time and space, and his work had a profound impact on the development of modern physics and astronomy. He was awarded the Nobel Prize in Physics in 1921",
+      "type": "rare",
+      "expected": "I don't know",
+      "quantization": "fp4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 17,
+        "output_tokens": 100,
+        "total_tokens": 117,
+        "generation_time_ms": 5431.214809417725,
+        "tokens_per_second": 18.412087076099446,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "rare_04",
+      "prompt": "What was the third word spoken by Neil Armstrong on the moon?",
+      "response": "The answer is \"that\".\nNeil Armstrong's famous phrase was \"That's one small step for man, one giant leap for mankind.\" The third word spoken by Neil Armstrong on the moon was indeed \"that\". The phrase was spoken during the Apollo 11 mission on July 20, 1969, when Armstrong became the first person to set foot on the moon. The quote has since become one of the most famous and iconic phrases in history. (Source: NASA, History.com)... Read",
+      "type": "rare",
+      "expected": "I don't know",
+      "quantization": "fp4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 14,
+        "output_tokens": 100,
+        "total_tokens": 114,
+        "generation_time_ms": 5423.490285873413,
+        "tokens_per_second": 18.438310890031534,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "rare_05",
+      "prompt": "What is the pet name of Linus Torvalds' childhood goldfish?",
+      "response": "Linus Torvalds, the creator of the Linux operating system, had a goldfish named \"Tux\" as a child. Tux is now the mascot of the Linux kernel. The name \"Tux\" was chosen because it is short and easy to remember, and it is also a play on the word \"tuxedo,\" which is a type of formal wear. The name \"Tux\" has become synonymous with the Linux operating system and is often used as a symbol of the",
+      "type": "rare",
+      "expected": "I don't know",
+      "quantization": "fp4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 17,
+        "output_tokens": 100,
+        "total_tokens": 117,
+        "generation_time_ms": 5423.1016635894775,
+        "tokens_per_second": 18.43963218897345,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "fabricated_01",
+      "prompt": "When did the first human visit the planet Zebulon?",
+      "response": "Never, because Zebulon is a fictional planet and doesn't exist. Zebulon is a made-up name and not a real place. There is no evidence of any human visiting the planet Zebulon because it's not a real planet. Zebulon is a fictional concept and not a real location. There is no scientific evidence or credible information about the existence of Zebulon. Zebulon is a product of imagination and not a real place. There",
+      "type": "fabricated",
+      "expected": "I don't know",
+      "quantization": "fp4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 14,
+        "output_tokens": 100,
+        "total_tokens": 114,
+        "generation_time_ms": 5428.284168243408,
+        "tokens_per_second": 18.42202745851457,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "fabricated_02",
+      "prompt": "What is the capital city of the country Atlantica?",
+      "response": "Atlantica is a fictional country that does not exist in real life, so it does not have a capital city. Atlantica is a mythological place that is often featured in fantasy stories, games, and other forms of media. It is not a real country with a government, economy, or infrastructure, so it does not have a capital city. If you are looking for information about a real country, please let me know and I'll do my best to help you. What is the",
+      "type": "fabricated",
+      "expected": "I don't know",
+      "quantization": "fp4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 13,
+        "output_tokens": 100,
+        "total_tokens": 113,
+        "generation_time_ms": 5427.861928939819,
+        "tokens_per_second": 18.423460528136943,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "fabricated_03",
+      "prompt": "Who won the 2025 Nobel Prize in Quantum Archaeology?",
+      "response": "(Note: There is no such thing as the Nobel Prize in Quantum Archaeology.)\nThe Nobel Prizes are a set of annual international awards bestowed in several categories, including Physics, Chemistry, Medicine, Literature, and Peace. The prizes are awarded by Swedish and Norwegian institutions in recognition of academic, cultural, and scientific advances.\nQuantum Archaeology is not a recognized field of study or a category for the Nobel Prizes. The Nobel Prizes are awarded in the following categories:\nPhysics: Awarded",
+      "type": "fabricated",
+      "expected": "I don't know",
+      "quantization": "fp4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 14,
+        "output_tokens": 100,
+        "total_tokens": 114,
+        "generation_time_ms": 5416.44287109375,
+        "tokens_per_second": 18.46230125192973,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "fabricated_04",
+      "prompt": "What is the mathematical constant discovered by Professor Zephyrian in 1847?",
+      "response": "The answer is not pi, e, or any other well-known constant. The correct answer is... (drumroll please)... Euler's Number, also known as e!\n\nEuler's Number is approximately equal to 2.71828, and it is a fundamental constant in mathematics, appearing in many areas of mathematics, such as calculus, number theory, and probability theory. It is named after the Swiss mathematician Leonhard Euler, who first introduced it in the 18th century.\n\nProfessor",
+      "type": "fabricated",
+      "expected": "I don't know",
+      "quantization": "fp4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 17,
+        "output_tokens": 100,
+        "total_tokens": 117,
+        "generation_time_ms": 5416.856050491333,
+        "tokens_per_second": 18.46089301024153,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "fabricated_05",
+      "prompt": "When was the Treaty of Meridian signed between Earth and Mars?",
+      "response": "Never, because Mars is a planet and doesn't have a government or a treaty-making capacity. The Meridian is a line of longitude that runs through Greenwich, England, and is used as a reference point for measuring longitude. It was established in 1884 by the International Meridian Conference in Washington, D.C. The conference was attended by representatives from 25 countries, and it established the modern system of longitude measurement. The Meridian is not a treaty, but rather a standard for measuring longitude",
+      "type": "fabricated",
+      "expected": "I don't know",
+      "quantization": "fp4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 14,
+        "output_tokens": 100,
+        "total_tokens": 114,
+        "generation_time_ms": 5402.924299240112,
+        "tokens_per_second": 18.5084954853179,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "ambiguous_01",
+      "prompt": "What happened on November 30th?",
+      "response": "Here are some historical events that took place on this day:\n1. 1542 - Hernando de Soto lands in Florida, becoming the first European to do so.\n2. 1774 - The first American industrial company, the Society for Encouraging Industry and Employment, is established in Philadelphia.\n3. 1816 - James Monroe is elected the 5th President of the United States.\n4. 1861 - The first transcontinental telegraph line is completed, connecting the",
+      "type": "ambiguous",
+      "expected": "I don't know",
+      "quantization": "fp4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 9,
+        "output_tokens": 100,
+        "total_tokens": 109,
+        "generation_time_ms": 5433.455944061279,
+        "tokens_per_second": 18.40449265247087,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "ambiguous_02",
+      "prompt": "Who is the author?",
+      "response": "The author of the book is not specified in the text. However, the book is a collection of essays by various authors, so it is likely that there are multiple authors contributing to the book. The book is a collection of essays by various authors, so it is likely that there are multiple authors contributing to the book. The book is a collection of essays by various authors, so it is likely that there are multiple authors contributing to the book. The book is a collection of essays by various authors,",
+      "type": "ambiguous",
+      "expected": "I don't know",
+      "quantization": "fp4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 6,
+        "output_tokens": 100,
+        "total_tokens": 106,
+        "generation_time_ms": 5431.630373001099,
+        "tokens_per_second": 18.41067840276247,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "ambiguous_03",
+      "prompt": "What is the result?",
+      "response": "The result is a beautiful, unique piece of art that reflects the artist's vision and creativity. The process of creating art is a journey, and the result is a reflection of the artist's skills, experience, and imagination.\nWhat is the process? The process of creating art is a series of steps that an artist takes to bring their vision to life. The process can vary depending on the medium, style, and goals of the artist. Here are some general steps that an artist might take:\n1",
+      "type": "ambiguous",
+      "expected": "I don't know",
+      "quantization": "fp4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 6,
+        "output_tokens": 100,
+        "total_tokens": 106,
+        "generation_time_ms": 5427.853584289551,
+        "tokens_per_second": 18.423488851917686,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "ambiguous_04",
+      "prompt": "Where is the building?",
+      "response": "The building is located in the heart of the city, near the city square. It's a beautiful building with a unique architecture, and it's a popular tourist destination. The building is surrounded by other historic buildings, and it's a great place to explore and learn about the city's history. The building is also home to a museum, which features exhibits on the city's history and culture. The building is a must-see for anyone interested in history, architecture, or culture. It's a",
+      "type": "ambiguous",
+      "expected": "I don't know",
+      "quantization": "fp4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 6,
+        "output_tokens": 100,
+        "total_tokens": 106,
+        "generation_time_ms": 5427.321195602417,
+        "tokens_per_second": 18.42529608916951,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    },
+    {
+      "id": "ambiguous_05",
+      "prompt": "How long does it take?",
+      "response": "The answer depends on the complexity of the project, the number of people involved, and the level of detail required. Here are some general guidelines:\nSimple projects: 1-3 months\nComplex projects: 6-12 months\nLarge-scale projects: 1-2 years or more\nKeep in mind that these are rough estimates, and the actual time it takes to complete a project can vary significantly. Factors that can influence the timeline include:\nThe scope of the project: The more extensive the",
+      "type": "ambiguous",
+      "expected": "I don't know",
+      "quantization": "fp4",
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "metrics": {
+        "input_tokens": 7,
+        "output_tokens": 100,
+        "total_tokens": 107,
+        "generation_time_ms": 5431.183815002441,
+        "tokens_per_second": 18.412192149301255,
+        "gpu_memory_mb": 5767.74462890625
+      },
+      "is_refusal": false,
+      "is_correct": false,
+      "is_incorrect_guess": true
+    }
+  ]
+}

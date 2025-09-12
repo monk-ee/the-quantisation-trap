@@ -9,6 +9,14 @@ on:
       - 'hallucination_quant.jsonl'
   workflow_dispatch:
     inputs:
+      experiment_type:
+        description: 'Experiment type'
+        required: true
+        type: choice
+        options:
+          - simple_quantization
+          - hyperparameter_sweep
+        default: 'hyperparameter_sweep'
       model_name:
         description: 'Hugging Face model name'
         required: false
@@ -16,11 +24,11 @@ on:
       max_tokens:
         description: 'Maximum tokens to generate per response'
         required: false
-        default: '100'
+        default: '80'
       test_subset:
-        description: 'Test only subset of quantization types (comma-separated: none,int8,nf4,fp4,nf4_double_quant,fp4_double_quant)'
+        description: 'Test only subset of quantization types (comma-separated: none,int8,nf4,fp4_double_quant)'
         required: false
-        default: 'none,int8,nf4,fp4,nf4_double_quant,fp4_double_quant'
+        default: 'none,int8,nf4,fp4_double_quant'
 
 jobs:
   # Single job running all quantization experiments sequentially 
@@ -83,10 +91,10 @@ jobs:
 
     - name: Create output directories
       run: |
-        mkdir -p hallucination_results
+        mkdir -p hallucination_results hyperparam_results
         echo "📁 Created output directories"
         echo "🧪 Starting Quantization Hallucination Experiment..."
-        echo "📋 Testing model's tendency to guess vs refuse under quantization"
+        echo "📋 Experiment Type: ${{ github.event.inputs.experiment_type || 'hyperparameter_sweep' }}"
 
     - name: Parse quantization types
       id: parse_quant
@@ -96,99 +104,128 @@ jobs:
         echo "quantization_types=$QUANT_TYPES" >> $GITHUB_OUTPUT
         echo "🎯 Testing quantization types: $QUANT_TYPES"
 
-    # Run experiments for each quantization type
-    - name: "Hallucination Experiment - No Quantization (Baseline)"
-      if: contains(steps.parse_quant.outputs.quantization_types, 'none')
+    # SIMPLE QUANTIZATION EXPERIMENTS (deterministic sampling)
+    - name: "Simple Quantization - No Quantization (Baseline)"
+      if: contains(steps.parse_quant.outputs.quantization_types, 'none') && github.event.inputs.experiment_type == 'simple_quantization'
       run: |
-        echo "🔬 BASELINE EXPERIMENT - No Quantization"
-        echo "========================================"
+        echo "🔬 SIMPLE BASELINE EXPERIMENT - No Quantization"
+        echo "============================================="
         
         python eval_hallucination.py \
           --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
           --prompts hallucination_quant.jsonl \
           --quantization none \
           --output hallucination_results/results_none.json \
-          --max-tokens ${{ github.event.inputs.max_tokens || '100' }} \
+          --max-tokens ${{ github.event.inputs.max_tokens || '80' }} \
           --verbose
 
-    - name: "Hallucination Experiment - INT8 Quantization" 
-      if: contains(steps.parse_quant.outputs.quantization_types, 'int8')
+    # HYPERPARAMETER SWEEP EXPERIMENTS (multiple sampling configs)
+    - name: "Hyperparam Sweep - No Quantization (Baseline)"
+      if: contains(steps.parse_quant.outputs.quantization_types, 'none') && (github.event.inputs.experiment_type == 'hyperparameter_sweep' || github.event.inputs.experiment_type == '')
       run: |
-        echo "🔬 INT8 QUANTIZATION EXPERIMENT"
-        echo "==============================="
+        echo "🔬 HYPERPARAM SWEEP - No Quantization"
+        echo "===================================="
+        
+        python eval_hallucination_hyperparams.py \
+          --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
+          --prompts hallucination_quant.jsonl \
+          --quantization none \
+          --output hyperparam_results/hyperparam_none.json \
+          --max-tokens ${{ github.event.inputs.max_tokens || '80' }} \
+          --verbose
+
+    - name: "Simple Quantization - INT8"
+      if: contains(steps.parse_quant.outputs.quantization_types, 'int8') && github.event.inputs.experiment_type == 'simple_quantization'
+      run: |
+        echo "🔬 SIMPLE INT8 QUANTIZATION EXPERIMENT"
+        echo "====================================="
         
         python eval_hallucination.py \
           --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
           --prompts hallucination_quant.jsonl \
           --quantization int8 \
           --output hallucination_results/results_int8.json \
-          --max-tokens ${{ github.event.inputs.max_tokens || '100' }} \
+          --max-tokens ${{ github.event.inputs.max_tokens || '80' }} \
           --verbose
 
-    - name: "Hallucination Experiment - NF4 Quantization"
-      if: contains(steps.parse_quant.outputs.quantization_types, 'nf4')
+    - name: "Hyperparam Sweep - INT8"
+      if: contains(steps.parse_quant.outputs.quantization_types, 'int8') && (github.event.inputs.experiment_type == 'hyperparameter_sweep' || github.event.inputs.experiment_type == '')
       run: |
-        echo "🔬 NF4 QUANTIZATION EXPERIMENT"
-        echo "=============================="
+        echo "🔬 HYPERPARAM SWEEP - INT8"
+        echo "========================="
+        
+        python eval_hallucination_hyperparams.py \
+          --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
+          --prompts hallucination_quant.jsonl \
+          --quantization int8 \
+          --output hyperparam_results/hyperparam_int8.json \
+          --max-tokens ${{ github.event.inputs.max_tokens || '80' }} \
+          --verbose
+
+    - name: "Simple Quantization - NF4"
+      if: contains(steps.parse_quant.outputs.quantization_types, 'nf4') && github.event.inputs.experiment_type == 'simple_quantization'
+      run: |
+        echo "🔬 SIMPLE NF4 QUANTIZATION EXPERIMENT"
+        echo "===================================="
         
         python eval_hallucination.py \
           --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
           --prompts hallucination_quant.jsonl \
           --quantization nf4 \
           --output hallucination_results/results_nf4.json \
-          --max-tokens ${{ github.event.inputs.max_tokens || '100' }} \
+          --max-tokens ${{ github.event.inputs.max_tokens || '80' }} \
           --verbose
 
-    - name: "Hallucination Experiment - FP4 Quantization"
-      if: contains(steps.parse_quant.outputs.quantization_types, 'fp4')
+    - name: "Hyperparam Sweep - NF4"
+      if: contains(steps.parse_quant.outputs.quantization_types, 'nf4') && (github.event.inputs.experiment_type == 'hyperparameter_sweep' || github.event.inputs.experiment_type == '')
       run: |
-        echo "🔬 FP4 QUANTIZATION EXPERIMENT" 
-        echo "=============================="
+        echo "🔬 HYPERPARAM SWEEP - NF4"
+        echo "========================"
         
-        python eval_hallucination.py \
+        python eval_hallucination_hyperparams.py \
           --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
           --prompts hallucination_quant.jsonl \
-          --quantization fp4 \
-          --output hallucination_results/results_fp4.json \
-          --max-tokens ${{ github.event.inputs.max_tokens || '100' }} \
+          --quantization nf4 \
+          --output hyperparam_results/hyperparam_nf4.json \
+          --max-tokens ${{ github.event.inputs.max_tokens || '80' }} \
           --verbose
 
-    - name: "Hallucination Experiment - NF4 Double Quantization (EXTREME)"
-      if: contains(steps.parse_quant.outputs.quantization_types, 'nf4_double_quant')
+    - name: "Simple Quantization - FP4 Double (NUCLEAR)"
+      if: contains(steps.parse_quant.outputs.quantization_types, 'fp4_double_quant') && github.event.inputs.experiment_type == 'simple_quantization'
       run: |
-        echo "🔥 NF4 DOUBLE QUANTIZATION EXPERIMENT (EXTREME)"
-        echo "=============================================="
-        echo "⚠️  Using double quantization for maximum compression"
-        
-        python eval_hallucination.py \
-          --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
-          --prompts hallucination_quant.jsonl \
-          --quantization nf4_double_quant \
-          --output hallucination_results/results_nf4_double_quant.json \
-          --max-tokens ${{ github.event.inputs.max_tokens || '100' }} \
-          --verbose
-
-    - name: "Hallucination Experiment - FP4 Double Quantization (NUCLEAR)"
-      if: contains(steps.parse_quant.outputs.quantization_types, 'fp4_double_quant')
-      run: |
-        echo "💥 FP4 DOUBLE QUANTIZATION EXPERIMENT (NUCLEAR)"
-        echo "=============================================="
-        echo "🚨 Maximum quantization - expect significant degradation"
+        echo "💥 SIMPLE FP4 DOUBLE QUANTIZATION (NUCLEAR)"
+        echo "=========================================="
         
         python eval_hallucination.py \
           --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
           --prompts hallucination_quant.jsonl \
           --quantization fp4_double_quant \
           --output hallucination_results/results_fp4_double_quant.json \
-          --max-tokens ${{ github.event.inputs.max_tokens || '100' }} \
+          --max-tokens ${{ github.event.inputs.max_tokens || '80' }} \
           --verbose
 
-    - name: Generate Comprehensive Analysis Report
+    - name: "Hyperparam Sweep - FP4 Double (NUCLEAR)"
+      if: contains(steps.parse_quant.outputs.quantization_types, 'fp4_double_quant') && (github.event.inputs.experiment_type == 'hyperparameter_sweep' || github.event.inputs.experiment_type == '')
       run: |
-        echo "📊 GENERATING ANALYSIS REPORT"
-        echo "============================="
+        echo "💥 HYPERPARAM SWEEP - FP4 DOUBLE (NUCLEAR)"
+        echo "=========================================="
+        echo "🚨 Testing hyperparameter sensitivity under extreme quantization"
         
-        # Find all result files that were generated
+        python eval_hallucination_hyperparams.py \
+          --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
+          --prompts hallucination_quant.jsonl \
+          --quantization fp4_double_quant \
+          --output hyperparam_results/hyperparam_fp4_double_quant.json \
+          --max-tokens ${{ github.event.inputs.max_tokens || '80' }} \
+          --verbose
+
+    - name: Generate Simple Quantization Analysis
+      if: github.event.inputs.experiment_type == 'simple_quantization'
+      run: |
+        echo "📊 GENERATING SIMPLE QUANTIZATION ANALYSIS"
+        echo "=========================================="
+        
+        # Find all simple result files
         RESULT_FILES=""
         for quant_type in $(echo "${{ steps.parse_quant.outputs.quantization_types }}" | tr ',' ' '); do
           if [ -f "hallucination_results/results_${quant_type}.json" ]; then
@@ -196,7 +233,7 @@ jobs:
           fi
         done
         
-        echo "📁 Result files found: $RESULT_FILES"
+        echo "📁 Simple result files: $RESULT_FILES"
         
         if [ -n "$RESULT_FILES" ]; then
           python hallucination_report.py \
@@ -204,80 +241,131 @@ jobs:
             --output hallucination_results/analysis_report.json \
             --verbose
         else
-          echo "⚠️ No result files found for analysis"
+          echo "⚠️ No simple result files found"
         fi
 
-    - name: Display Experiment Results
+    - name: Generate Hyperparameter Analysis with Graphs
+      if: github.event.inputs.experiment_type == 'hyperparameter_sweep' || github.event.inputs.experiment_type == ''
+      run: |
+        echo "📊 GENERATING HYPERPARAMETER ANALYSIS WITH GRAPHS"
+        echo "=================================================="
+        
+        # Find all hyperparam result files
+        RESULT_FILES=""
+        for quant_type in $(echo "${{ steps.parse_quant.outputs.quantization_types }}" | tr ',' ' '); do
+          if [ -f "hyperparam_results/hyperparam_${quant_type}.json" ]; then
+            RESULT_FILES="$RESULT_FILES hyperparam_results/hyperparam_${quant_type}.json"
+          fi
+        done
+        
+        echo "📁 Hyperparam result files: $RESULT_FILES"
+        
+        if [ -n "$RESULT_FILES" ]; then
+          python hyperparam_analysis_report.py \
+            --results $RESULT_FILES \
+            --output hyperparam_results/hyperparam_analysis.json \
+            --verbose
+        else
+          echo "⚠️ No hyperparam result files found"
+        fi
+
+    - name: Display Simple Quantization Results
+      if: github.event.inputs.experiment_type == 'simple_quantization'
       run: |
         echo "🎯 ============================================"
-        echo "   QUANTIZATION HALLUCINATION EXPERIMENT"
-        echo "   FINAL RESULTS"
+        echo "   SIMPLE QUANTIZATION EXPERIMENT RESULTS"
         echo "============================================="
         
         if [ -f "hallucination_results/analysis_report.json" ]; then
-          echo "📊 EXPERIMENT SUMMARY:"
-          echo "====================="
+          echo "📊 SIMPLE QUANTIZATION SUMMARY:"
+          echo "==============================="
           python -c "
         import json
         with open('hallucination_results/analysis_report.json', 'r') as f:
             report = json.load(f)
         
         summary = report['experiment_summary']
-        print(f'Model Tested: {summary[\"model_name\"]}')
-        print(f'Quantization Types: {len(summary[\"quantization_types\"])}')
+        print(f'Model: {summary[\"model_name\"]}')
+        print(f'Quantization Types: {\", \".join(summary[\"quantization_types\"])}')
         print(f'Questions per Type: {summary[\"total_questions_per_type\"]}')
-        print(f'Types Tested: {\", \".join(summary[\"quantization_types\"])}')
         print()
         
-        # Display summary table if available
-        if 'summary_table' in report and len(report['summary_table']) > 1:
+        # Display summary table
+        if 'summary_table' in report:
             print('📈 RESULTS TABLE:')
-            print('================')
-            table = report['summary_table']
-            headers = table[0]
-            
-            # Print headers
-            print('|'.join(f' {h:<15}' for h in headers[:5]))  # First 5 cols for readability
-            print('-' * 80)
-            
-            # Print data rows
-            for row in table[1:]:
-                print('|'.join(f' {str(row[i]):<15}' for i in range(min(5, len(row)))))
+            for row in report['summary_table'][:6]:  # Limit rows for readability
+                print('  '.join(f'{str(cell):<12}' for cell in row))
             print()
         
-        # Display key findings
-        if 'conclusions' in report and report['conclusions']:
+        # Display conclusions
+        if 'conclusions' in report:
             print('🔍 KEY FINDINGS:')
-            print('===============')
             for i, finding in enumerate(report['conclusions'], 1):
                 print(f'{i}. {finding}')
-            print()
-        
-        # Show trends if available
-        if 'trends_analysis' in report and report['trends_analysis']['key_findings']:
-            print('📈 HALLUCINATION TRENDS:')
-            print('=======================')
-            for finding in report['trends_analysis']['key_findings']:
-                print(f'• {finding}')
           "
-        else
-          echo "⚠️ Analysis report not found"
         fi
         
         echo ""
         echo "📁 Generated Files:"
-        echo "=================="
         find hallucination_results/ -name "*.json" -type f -exec basename {} \;
+
+    - name: Display Hyperparameter Sweep Results  
+      if: github.event.inputs.experiment_type == 'hyperparameter_sweep' || github.event.inputs.experiment_type == ''
+      run: |
+        echo "🎯 ============================================"
+        echo "   HYPERPARAMETER × QUANTIZATION SWEEP RESULTS"
+        echo "============================================="
+        
+        if [ -f "hyperparam_results/hyperparam_analysis.json" ]; then
+          echo "📊 HYPERPARAMETER SENSITIVITY SUMMARY:"
+          echo "====================================="
+          python -c "
+        import json
+        with open('hyperparam_results/hyperparam_analysis.json', 'r') as f:
+            report = json.load(f)
+        
+        print(f'Model: {report[\"experiment_summary\"][\"model_name\"]}')
+        print(f'Question Categories: {report[\"experiment_summary\"][\"question_categories\"]}')
+        print(f'Hyperparameter Configs: {report[\"experiment_summary\"][\"total_hyperparam_configs\"]}')
+        print(f'Quantization Types: {report[\"experiment_summary\"][\"quantization_types\"]}')
+        print(f'Total Responses Analyzed: {report[\"experiment_summary\"][\"total_responses\"]}')
+        print()
+        
+        # Show key findings
+        if 'key_findings' in report:
+            print('🔍 KEY DISCOVERIES:')
+            for i, finding in enumerate(report['key_findings'], 1):
+                print(f'{i}. {finding}')
+            print()
+        
+        # Show sensitivity rankings
+        if 'sensitivity_analysis' in report:
+            sens = report['sensitivity_analysis']
+            print('🌡️ TEMPERATURE SENSITIVITY RANKING:')
+            for rank in sens.get('temperature_sensitivity_ranking', []):
+                print(f'{rank[\"rank\"]}. {rank[\"quantization\"]} - Score: {rank[\"sensitivity_score\"]:.3f}')
+            print()
+        
+        # Show generated visualizations
+        if 'visualization_files' in report:
+            print('📈 GENERATED VISUALIZATIONS:')
+            for viz_file in report['visualization_files']:
+                import os
+                filename = os.path.basename(viz_file)
+                if os.path.exists(viz_file):
+                    print(f'✅ {filename}')
+                else:
+                    print(f'❌ {filename} (not found)')
+            print()
+          "
+        fi
         
         echo ""
-        echo "💡 BLOG POST READY:"
-        echo "=================="
-        echo "✅ Experiment data: hallucination_results/"
-        echo "✅ Analysis report: hallucination_results/analysis_report.json"
-        echo "✅ Individual results: hallucination_results/results_*.json"
-        echo ""
-        echo "📝 Use these results to write:"
-        echo "   'Hallucination Trap, 2-bit Style: Quantization Makes Models Bluff Harder'"
+        echo "📁 Generated Files:"
+        echo "JSON Results:"
+        find hyperparam_results/ -name "*.json" -type f -exec basename {} \;
+        echo "📈 Generated Graphs:"
+        find hyperparam_results/ -name "*.png" -type f -exec basename {} \;
 
     - name: Upload Experiment Results
       uses: actions/upload-artifact@v4
@@ -285,6 +373,7 @@ jobs:
         name: quantization-hallucination-results
         path: |
           hallucination_results/
+          hyperparam_results/
           hallucination_quant.jsonl
         retention-days: 30
 
@@ -292,50 +381,80 @@ jobs:
       run: |
         echo "🎯 ============================================" > experiment_summary.txt
         echo "   QUANTIZATION HALLUCINATION EXPERIMENT" >> experiment_summary.txt
-        echo "   OpenAI Paper Validation Results" >> experiment_summary.txt  
+        echo "   Experiment Type: ${{ github.event.inputs.experiment_type || 'hyperparameter_sweep' }}" >> experiment_summary.txt  
         echo "=============================================" >> experiment_summary.txt
         echo "" >> experiment_summary.txt
         
-        if [ -f "hallucination_results/analysis_report.json" ]; then
+        EXPERIMENT_TYPE="${{ github.event.inputs.experiment_type || 'hyperparameter_sweep' }}"
+        
+        if [ "$EXPERIMENT_TYPE" = "simple_quantization" ] && [ -f "hallucination_results/analysis_report.json" ]; then
+          echo "📊 SIMPLE QUANTIZATION RESULTS:" >> experiment_summary.txt
+          echo "===============================" >> experiment_summary.txt
           python -c "
         import json
         with open('hallucination_results/analysis_report.json', 'r') as f:
             report = json.load(f)
         
         with open('experiment_summary.txt', 'a') as f:
-            f.write(f'Model: {report[\"experiment_summary\"][\"model_name\"]}\n')
-            f.write(f'Question Types: Known, Rare, Fabricated, Ambiguous\n') 
-            f.write(f'Quantization Methods: {\", \".join(report[\"experiment_summary\"][\"quantization_types\"])}\n')
-            f.write(f'Total Questions: {report[\"experiment_summary\"][\"total_questions_per_type\"]} per method\n\n')
+            summary = report['experiment_summary']
+            f.write(f'Model: {summary[\"model_name\"]}\n')
+            f.write(f'Quantization Types: {\", \".join(summary[\"quantization_types\"])}\n')
+            f.write(f'Questions per Type: {summary[\"total_questions_per_type\"]}\n\n')
             
-            if 'conclusions' in report and report['conclusions']:
+            if 'conclusions' in report:
                 f.write('KEY FINDINGS:\n')
-                f.write('=============\n')
                 for i, finding in enumerate(report['conclusions'], 1):
                     f.write(f'{i}. {finding}\n')
                 f.write('\n')
-                
-            f.write('HYPOTHESIS VALIDATION:\n')
-            f.write('=====================\n')
-            f.write('Testing OpenAI claim: Models hallucinate due to training incentives\n')
-            f.write('that reward guessing over admitting uncertainty.\n\n')
-            f.write('Question: Does quantization make this worse?\n')
-            f.write('Expected: Stronger quantization → more incorrect guesses, fewer \"I don\'t know\" responses\n\n')
+          "
+        elif [ "$EXPERIMENT_TYPE" != "simple_quantization" ] && [ -f "hyperparam_results/hyperparam_analysis.json" ]; then
+          echo "📊 HYPERPARAMETER SWEEP RESULTS:" >> experiment_summary.txt
+          echo "================================" >> experiment_summary.txt
+          python -c "
+        import json
+        with open('hyperparam_results/hyperparam_analysis.json', 'r') as f:
+            report = json.load(f)
+        
+        with open('experiment_summary.txt', 'a') as f:
+            summary = report['experiment_summary']
+            f.write(f'Model: {summary[\"model_name\"]}\n')
+            f.write(f'Question Categories: {summary[\"question_categories\"]}\n')
+            f.write(f'Hyperparameter Configs: {summary[\"total_hyperparam_configs\"]}\n')
+            f.write(f'Quantization Types: {summary[\"quantization_types\"]}\n')
+            f.write(f'Total Responses: {summary[\"total_responses\"]}\n\n')
             
-            if 'trends_analysis' in report:
-                trends = report['trends_analysis']
-                if trends['key_findings']:
-                    f.write('EXPERIMENT CONFIRMS:\n')
-                    for finding in trends['key_findings']:
-                        f.write(f'✅ {finding}\n')
-                else:
-                    f.write('⚠️ No clear trends detected - may need more data or different model\n')
+            if 'key_findings' in report:
+                f.write('KEY DISCOVERIES:\n')
+                for i, finding in enumerate(report['key_findings'], 1):
+                    f.write(f'{i}. {finding}\n')
+                f.write('\n')
+                
+            if 'sensitivity_analysis' in report:
+                f.write('TEMPERATURE SENSITIVITY RANKING:\n')
+                sens = report['sensitivity_analysis']
+                for rank in sens.get('temperature_sensitivity_ranking', []):
+                    f.write(f'{rank[\"rank\"]}. {rank[\"quantization\"]} - Score: {rank[\"sensitivity_score\"]:.3f}\n')
+                f.write('\n')
+                
+            if 'visualization_files' in report:
+                f.write(f'GENERATED VISUALIZATIONS: {len(report[\"visualization_files\"])}\n')
+                for viz_file in report['visualization_files']:
+                    import os
+                    filename = os.path.basename(viz_file)
+                    f.write(f'• {filename}\n')
+                f.write('\n')
           "
         else
-          echo "⚠️ No analysis report available" >> experiment_summary.txt
+          echo "⚠️ No analysis results available" >> experiment_summary.txt
         fi
         
-        echo "" >> experiment_summary.txt
-        echo "📁 Download artifacts for detailed analysis and blog post creation" >> experiment_summary.txt
+        echo "📁 BLOG POST POTENTIAL:" >> experiment_summary.txt
+        echo "======================" >> experiment_summary.txt
+        if [ "$EXPERIMENT_TYPE" = "simple_quantization" ]; then
+          echo "Title: 'The Quantization Trap That Wasn't'" >> experiment_summary.txt
+        else
+          echo "Title: 'When Quantized Models Stop Listening: The Temperature Sensitivity Trap'" >> experiment_summary.txt
+        fi
+        echo "Download artifacts for detailed analysis and visualization" >> experiment_summary.txt
         
         cat experiment_summary.txt
