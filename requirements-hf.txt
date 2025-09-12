@@ -1,0 +1,16 @@
+# Core ML Dependencies for Quantization Experiments
+torch>=2.1.0
+transformers>=4.42.0
+accelerate>=0.24.0
+bitsandbytes>=0.41.0
+auto-gptq>=0.7.1
+datasets>=2.12.0
+
+# Performance Dependencies
+optimum>=1.8.0
+hf_transfer>=0.1.3
+multiprocess>=0.70.0
+
+# Basic utilities
+numpy
+tqdm

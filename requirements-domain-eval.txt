@@ -1,0 +1,6 @@
+# Additional dependencies for domain evaluation
+sentence-transformers
+faiss-gpu
+bert-score
+scikit-learn
+pandas

@@ -1,0 +1,341 @@
+name: Quantization Hallucination Trap Experiment
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'eval_hallucination.py'
+      - 'hallucination_report.py'
+      - 'hallucination_quant.jsonl'
+  workflow_dispatch:
+    inputs:
+      model_name:
+        description: 'Hugging Face model name'
+        required: false
+        default: 'meta-llama/Meta-Llama-3-8B-Instruct'
+      max_tokens:
+        description: 'Maximum tokens to generate per response'
+        required: false
+        default: '100'
+      test_subset:
+        description: 'Test only subset of quantization types (comma-separated: none,int8,nf4,fp4,nf4_double_quant,fp4_double_quant)'
+        required: false
+        default: 'none,int8,nf4,fp4,nf4_double_quant,fp4_double_quant'
+
+jobs:
+  # Single job running all quantization experiments sequentially 
+  # Model stays loaded in GPU memory across experiments
+  quantization-hallucination-experiment:
+    runs-on:
+      - machine
+      - gpu=l40s
+      - cpu=8
+      - ram=64
+      - architecture=x64
+      - tenancy=spot
+    timeout-minutes: 180
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      HF_HUB_ENABLE_HF_TRANSFER: 1
+      HF_HUB_DOWNLOAD_TIMEOUT: 120
+      CUDA_LAUNCH_BLOCKING: 1
+      TORCH_USE_CUDA_DSA: 1
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+
+    - name: Install dependencies
+      run: |
+        echo "🚀 Installing ML dependencies for quantization experiments..."
+        uv pip install -r requirements-hf.txt --system
+        
+        # Verify critical dependencies for quantization
+        echo "🧪 Verifying quantization dependencies..."
+        python -c "import torch; print('✅ PyTorch:', torch.__version__, '| CUDA available:', torch.cuda.is_available())"
+        python -c "import transformers; print('✅ transformers:', transformers.__version__)"
+        python -c "import bitsandbytes; print('✅ bitsandbytes available for quantization')" || {
+          echo "💥 bitsandbytes missing - required for quantization experiments!"
+          exit 1
+        }
+        
+        # GPU verification
+        python -c "
+        import torch
+        if torch.cuda.is_available():
+            print(f'✅ GPU: {torch.cuda.get_device_name(0)}')
+            print(f'✅ GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB')
+            print(f'✅ CUDA Version: {torch.version.cuda}')
+        else:
+            print('⚠️ No GPU available')
+        "
+
+    - name: Login to Hugging Face
+      run: |
+        python -c "from huggingface_hub import login; login('${{ secrets.HF_TOKEN }}')"
+
+    - name: Create output directories
+      run: |
+        mkdir -p hallucination_results
+        echo "📁 Created output directories"
+        echo "🧪 Starting Quantization Hallucination Experiment..."
+        echo "📋 Testing model's tendency to guess vs refuse under quantization"
+
+    - name: Parse quantization types
+      id: parse_quant
+      run: |
+        # Parse comma-separated quantization types
+        QUANT_TYPES="${{ github.event.inputs.test_subset || 'none,int8,nf4,fp4,nf4_double_quant,fp4_double_quant' }}"
+        echo "quantization_types=$QUANT_TYPES" >> $GITHUB_OUTPUT
+        echo "🎯 Testing quantization types: $QUANT_TYPES"
+
+    # Run experiments for each quantization type
+    - name: "Hallucination Experiment - No Quantization (Baseline)"
+      if: contains(steps.parse_quant.outputs.quantization_types, 'none')
+      run: |
+        echo "🔬 BASELINE EXPERIMENT - No Quantization"
+        echo "========================================"
+        
+        python eval_hallucination.py \
+          --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
+          --prompts hallucination_quant.jsonl \
+          --quantization none \
+          --output hallucination_results/results_none.json \
+          --max-tokens ${{ github.event.inputs.max_tokens || '100' }} \
+          --verbose
+
+    - name: "Hallucination Experiment - INT8 Quantization" 
+      if: contains(steps.parse_quant.outputs.quantization_types, 'int8')
+      run: |
+        echo "🔬 INT8 QUANTIZATION EXPERIMENT"
+        echo "==============================="
+        
+        python eval_hallucination.py \
+          --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
+          --prompts hallucination_quant.jsonl \
+          --quantization int8 \
+          --output hallucination_results/results_int8.json \
+          --max-tokens ${{ github.event.inputs.max_tokens || '100' }} \
+          --verbose
+
+    - name: "Hallucination Experiment - NF4 Quantization"
+      if: contains(steps.parse_quant.outputs.quantization_types, 'nf4')
+      run: |
+        echo "🔬 NF4 QUANTIZATION EXPERIMENT"
+        echo "=============================="
+        
+        python eval_hallucination.py \
+          --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
+          --prompts hallucination_quant.jsonl \
+          --quantization nf4 \
+          --output hallucination_results/results_nf4.json \
+          --max-tokens ${{ github.event.inputs.max_tokens || '100' }} \
+          --verbose
+
+    - name: "Hallucination Experiment - FP4 Quantization"
+      if: contains(steps.parse_quant.outputs.quantization_types, 'fp4')
+      run: |
+        echo "🔬 FP4 QUANTIZATION EXPERIMENT" 
+        echo "=============================="
+        
+        python eval_hallucination.py \
+          --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
+          --prompts hallucination_quant.jsonl \
+          --quantization fp4 \
+          --output hallucination_results/results_fp4.json \
+          --max-tokens ${{ github.event.inputs.max_tokens || '100' }} \
+          --verbose
+
+    - name: "Hallucination Experiment - NF4 Double Quantization (EXTREME)"
+      if: contains(steps.parse_quant.outputs.quantization_types, 'nf4_double_quant')
+      run: |
+        echo "🔥 NF4 DOUBLE QUANTIZATION EXPERIMENT (EXTREME)"
+        echo "=============================================="
+        echo "⚠️  Using double quantization for maximum compression"
+        
+        python eval_hallucination.py \
+          --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
+          --prompts hallucination_quant.jsonl \
+          --quantization nf4_double_quant \
+          --output hallucination_results/results_nf4_double_quant.json \
+          --max-tokens ${{ github.event.inputs.max_tokens || '100' }} \
+          --verbose
+
+    - name: "Hallucination Experiment - FP4 Double Quantization (NUCLEAR)"
+      if: contains(steps.parse_quant.outputs.quantization_types, 'fp4_double_quant')
+      run: |
+        echo "💥 FP4 DOUBLE QUANTIZATION EXPERIMENT (NUCLEAR)"
+        echo "=============================================="
+        echo "🚨 Maximum quantization - expect significant degradation"
+        
+        python eval_hallucination.py \
+          --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
+          --prompts hallucination_quant.jsonl \
+          --quantization fp4_double_quant \
+          --output hallucination_results/results_fp4_double_quant.json \
+          --max-tokens ${{ github.event.inputs.max_tokens || '100' }} \
+          --verbose
+
+    - name: Generate Comprehensive Analysis Report
+      run: |
+        echo "📊 GENERATING ANALYSIS REPORT"
+        echo "============================="
+        
+        # Find all result files that were generated
+        RESULT_FILES=""
+        for quant_type in $(echo "${{ steps.parse_quant.outputs.quantization_types }}" | tr ',' ' '); do
+          if [ -f "hallucination_results/results_${quant_type}.json" ]; then
+            RESULT_FILES="$RESULT_FILES hallucination_results/results_${quant_type}.json"
+          fi
+        done
+        
+        echo "📁 Result files found: $RESULT_FILES"
+        
+        if [ -n "$RESULT_FILES" ]; then
+          python hallucination_report.py \
+            --results $RESULT_FILES \
+            --output hallucination_results/analysis_report.json \
+            --verbose
+        else
+          echo "⚠️ No result files found for analysis"
+        fi
+
+    - name: Display Experiment Results
+      run: |
+        echo "🎯 ============================================"
+        echo "   QUANTIZATION HALLUCINATION EXPERIMENT"
+        echo "   FINAL RESULTS"
+        echo "============================================="
+        
+        if [ -f "hallucination_results/analysis_report.json" ]; then
+          echo "📊 EXPERIMENT SUMMARY:"
+          echo "====================="
+          python -c "
+        import json
+        with open('hallucination_results/analysis_report.json', 'r') as f:
+            report = json.load(f)
+        
+        summary = report['experiment_summary']
+        print(f'Model Tested: {summary[\"model_name\"]}')
+        print(f'Quantization Types: {len(summary[\"quantization_types\"])}')
+        print(f'Questions per Type: {summary[\"total_questions_per_type\"]}')
+        print(f'Types Tested: {\", \".join(summary[\"quantization_types\"])}')
+        print()
+        
+        # Display summary table if available
+        if 'summary_table' in report and len(report['summary_table']) > 1:
+            print('📈 RESULTS TABLE:')
+            print('================')
+            table = report['summary_table']
+            headers = table[0]
+            
+            # Print headers
+            print('|'.join(f' {h:<15}' for h in headers[:5]))  # First 5 cols for readability
+            print('-' * 80)
+            
+            # Print data rows
+            for row in table[1:]:
+                print('|'.join(f' {str(row[i]):<15}' for i in range(min(5, len(row)))))
+            print()
+        
+        # Display key findings
+        if 'conclusions' in report and report['conclusions']:
+            print('🔍 KEY FINDINGS:')
+            print('===============')
+            for i, finding in enumerate(report['conclusions'], 1):
+                print(f'{i}. {finding}')
+            print()
+        
+        # Show trends if available
+        if 'trends_analysis' in report and report['trends_analysis']['key_findings']:
+            print('📈 HALLUCINATION TRENDS:')
+            print('=======================')
+            for finding in report['trends_analysis']['key_findings']:
+                print(f'• {finding}')
+          "
+        else
+          echo "⚠️ Analysis report not found"
+        fi
+        
+        echo ""
+        echo "📁 Generated Files:"
+        echo "=================="
+        find hallucination_results/ -name "*.json" -type f -exec basename {} \;
+        
+        echo ""
+        echo "💡 BLOG POST READY:"
+        echo "=================="
+        echo "✅ Experiment data: hallucination_results/"
+        echo "✅ Analysis report: hallucination_results/analysis_report.json"
+        echo "✅ Individual results: hallucination_results/results_*.json"
+        echo ""
+        echo "📝 Use these results to write:"
+        echo "   'Hallucination Trap, 2-bit Style: Quantization Makes Models Bluff Harder'"
+
+    - name: Upload Experiment Results
+      uses: actions/upload-artifact@v4
+      with:
+        name: quantization-hallucination-results
+        path: |
+          hallucination_results/
+          hallucination_quant.jsonl
+        retention-days: 30
+
+    - name: Create Experiment Summary
+      run: |
+        echo "🎯 ============================================" > experiment_summary.txt
+        echo "   QUANTIZATION HALLUCINATION EXPERIMENT" >> experiment_summary.txt
+        echo "   OpenAI Paper Validation Results" >> experiment_summary.txt  
+        echo "=============================================" >> experiment_summary.txt
+        echo "" >> experiment_summary.txt
+        
+        if [ -f "hallucination_results/analysis_report.json" ]; then
+          python -c "
+        import json
+        with open('hallucination_results/analysis_report.json', 'r') as f:
+            report = json.load(f)
+        
+        with open('experiment_summary.txt', 'a') as f:
+            f.write(f'Model: {report[\"experiment_summary\"][\"model_name\"]}\n')
+            f.write(f'Question Types: Known, Rare, Fabricated, Ambiguous\n') 
+            f.write(f'Quantization Methods: {\", \".join(report[\"experiment_summary\"][\"quantization_types\"])}\n')
+            f.write(f'Total Questions: {report[\"experiment_summary\"][\"total_questions_per_type\"]} per method\n\n')
+            
+            if 'conclusions' in report and report['conclusions']:
+                f.write('KEY FINDINGS:\n')
+                f.write('=============\n')
+                for i, finding in enumerate(report['conclusions'], 1):
+                    f.write(f'{i}. {finding}\n')
+                f.write('\n')
+                
+            f.write('HYPOTHESIS VALIDATION:\n')
+            f.write('=====================\n')
+            f.write('Testing OpenAI claim: Models hallucinate due to training incentives\n')
+            f.write('that reward guessing over admitting uncertainty.\n\n')
+            f.write('Question: Does quantization make this worse?\n')
+            f.write('Expected: Stronger quantization → more incorrect guesses, fewer \"I don\'t know\" responses\n\n')
+            
+            if 'trends_analysis' in report:
+                trends = report['trends_analysis']
+                if trends['key_findings']:
+                    f.write('EXPERIMENT CONFIRMS:\n')
+                    for finding in trends['key_findings']:
+                        f.write(f'✅ {finding}\n')
+                else:
+                    f.write('⚠️ No clear trends detected - may need more data or different model\n')
+          "
+        else
+          echo "⚠️ No analysis report available" >> experiment_summary.txt
+        fi
+        
+        echo "" >> experiment_summary.txt
+        echo "📁 Download artifacts for detailed analysis and blog post creation" >> experiment_summary.txt
+        
+        cat experiment_summary.txt
