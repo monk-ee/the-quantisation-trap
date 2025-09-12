@@ -29,6 +29,15 @@ on:
         description: 'Test only subset of quantization types (comma-separated: none,int8,nf4,fp4_double_quant)'
         required: false
         default: 'none,int8,nf4,fp4_double_quant'
+      prompt_engineering:
+        description: 'Test prompt engineering effects'
+        required: false
+        type: choice
+        options:
+          - both
+          - baseline_only
+          - prompted_only
+        default: 'both'
 
 jobs:
   # Single job running all quantization experiments sequentially 
@@ -95,6 +104,7 @@ jobs:
         echo "📁 Created output directories"
         echo "🧪 Starting Quantization Hallucination Experiment..."
         echo "📋 Experiment Type: ${{ github.event.inputs.experiment_type || 'hyperparameter_sweep' }}"
+        echo "📋 Prompt Engineering: ${{ github.event.inputs.prompt_engineering || 'both' }}"
 
     - name: Parse quantization types
       id: parse_quant
@@ -120,17 +130,32 @@ jobs:
           --verbose
 
     # HYPERPARAMETER SWEEP EXPERIMENTS (multiple sampling configs)
-    - name: "Hyperparam Sweep - No Quantization (Baseline)"
-      if: contains(steps.parse_quant.outputs.quantization_types, 'none') && (github.event.inputs.experiment_type == 'hyperparameter_sweep' || github.event.inputs.experiment_type == '')
+    - name: "Hyperparam Sweep - No Quantization (Baseline Prompts)"
+      if: contains(steps.parse_quant.outputs.quantization_types, 'none') && (github.event.inputs.experiment_type == 'hyperparameter_sweep' || github.event.inputs.experiment_type == '') && (github.event.inputs.prompt_engineering == 'both' || github.event.inputs.prompt_engineering == 'baseline_only' || github.event.inputs.prompt_engineering == '')
       run: |
-        echo "🔬 HYPERPARAM SWEEP - No Quantization"
-        echo "===================================="
+        echo "🔬 HYPERPARAM SWEEP - No Quantization (Baseline Prompts)"
+        echo "======================================================="
         
         python eval_hallucination_hyperparams.py \
           --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
           --prompts hallucination_quant.jsonl \
           --quantization none \
-          --output hyperparam_results/hyperparam_none.json \
+          --output hyperparam_results/hyperparam_none_baseline.json \
+          --max-tokens ${{ github.event.inputs.max_tokens || '80' }} \
+          --verbose
+
+    - name: "Hyperparam Sweep - No Quantization (Anti-Hallucination Prompts)"
+      if: contains(steps.parse_quant.outputs.quantization_types, 'none') && (github.event.inputs.experiment_type == 'hyperparameter_sweep' || github.event.inputs.experiment_type == '') && (github.event.inputs.prompt_engineering == 'both' || github.event.inputs.prompt_engineering == 'prompted_only')
+      run: |
+        echo "🔬 HYPERPARAM SWEEP - No Quantization (Anti-Hallucination Prompts)"
+        echo "=================================================================="
+        echo "🧠 Testing: Does prompt engineering reduce hallucination more than quantization?"
+        
+        python eval_hallucination_hyperparams.py \
+          --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
+          --prompts hallucination_quant_prompted.jsonl \
+          --quantization none \
+          --output hyperparam_results/hyperparam_none_prompted.json \
           --max-tokens ${{ github.event.inputs.max_tokens || '80' }} \
           --verbose
 
@@ -204,18 +229,33 @@ jobs:
           --max-tokens ${{ github.event.inputs.max_tokens || '80' }} \
           --verbose
 
-    - name: "Hyperparam Sweep - FP4 Double (NUCLEAR)"
-      if: contains(steps.parse_quant.outputs.quantization_types, 'fp4_double_quant') && (github.event.inputs.experiment_type == 'hyperparameter_sweep' || github.event.inputs.experiment_type == '')
+    - name: "Hyperparam Sweep - FP4 Double (NUCLEAR - Baseline Prompts)"
+      if: contains(steps.parse_quant.outputs.quantization_types, 'fp4_double_quant') && (github.event.inputs.experiment_type == 'hyperparameter_sweep' || github.event.inputs.experiment_type == '') && (github.event.inputs.prompt_engineering == 'both' || github.event.inputs.prompt_engineering == 'baseline_only' || github.event.inputs.prompt_engineering == '')
       run: |
-        echo "💥 HYPERPARAM SWEEP - FP4 DOUBLE (NUCLEAR)"
-        echo "=========================================="
+        echo "💥 HYPERPARAM SWEEP - FP4 DOUBLE (NUCLEAR - Baseline Prompts)"
+        echo "============================================================="
         echo "🚨 Testing hyperparameter sensitivity under extreme quantization"
         
         python eval_hallucination_hyperparams.py \
           --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
           --prompts hallucination_quant.jsonl \
           --quantization fp4_double_quant \
-          --output hyperparam_results/hyperparam_fp4_double_quant.json \
+          --output hyperparam_results/hyperparam_fp4_double_quant_baseline.json \
+          --max-tokens ${{ github.event.inputs.max_tokens || '80' }} \
+          --verbose
+
+    - name: "Hyperparam Sweep - FP4 Double (NUCLEAR - Anti-Hallucination Prompts)"
+      if: contains(steps.parse_quant.outputs.quantization_types, 'fp4_double_quant') && (github.event.inputs.experiment_type == 'hyperparameter_sweep' || github.event.inputs.experiment_type == '') && (github.event.inputs.prompt_engineering == 'both' || github.event.inputs.prompt_engineering == 'prompted_only')
+      run: |
+        echo "💥 HYPERPARAM SWEEP - FP4 DOUBLE (NUCLEAR - Anti-Hallucination Prompts)"
+        echo "======================================================================="
+        echo "🧠 KEY EXPERIMENT: Can prompt engineering overcome extreme quantization effects?"
+        
+        python eval_hallucination_hyperparams.py \
+          --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
+          --prompts hallucination_quant_prompted.jsonl \
+          --quantization fp4_double_quant \
+          --output hyperparam_results/hyperparam_fp4_double_quant_prompted.json \
           --max-tokens ${{ github.event.inputs.max_tokens || '80' }} \
           --verbose
 
@@ -250,9 +290,16 @@ jobs:
         echo "📊 GENERATING HYPERPARAMETER ANALYSIS WITH GRAPHS"
         echo "=================================================="
         
-        # Find all hyperparam result files
+        # Find all hyperparam result files (baseline and prompted)
         RESULT_FILES=""
         for quant_type in $(echo "${{ steps.parse_quant.outputs.quantization_types }}" | tr ',' ' '); do
+          if [ -f "hyperparam_results/hyperparam_${quant_type}_baseline.json" ]; then
+            RESULT_FILES="$RESULT_FILES hyperparam_results/hyperparam_${quant_type}_baseline.json"
+          fi
+          if [ -f "hyperparam_results/hyperparam_${quant_type}_prompted.json" ]; then
+            RESULT_FILES="$RESULT_FILES hyperparam_results/hyperparam_${quant_type}_prompted.json"
+          fi
+          # Legacy support for old naming
           if [ -f "hyperparam_results/hyperparam_${quant_type}.json" ]; then
             RESULT_FILES="$RESULT_FILES hyperparam_results/hyperparam_${quant_type}.json"
           fi
@@ -375,6 +422,7 @@ jobs:
           hallucination_results/
           hyperparam_results/
           hallucination_quant.jsonl
+          hallucination_quant_prompted.jsonl
         retention-days: 30
 
     - name: Create Experiment Summary

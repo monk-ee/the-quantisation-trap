@@ -19,37 +19,28 @@ Results: **No effect** - all quantization levels showed identical hallucination 
 
 ## 🚀 Future Experiment Ideas
 
-### 3. **Prompt Engineering Anti-Hallucination** (Not Yet Implemented)
-Test different system prompts to encourage uncertainty admission:
+### 3. **Prompt Engineering vs Quantization** (IMPLEMENTED ✅)
+Testing if prompt engineering is more effective than quantization for reducing hallucination:
 
-**Prompt Variations to Test:**
+**Current Implementation:**
 ```
-A. Baseline: [No special instructions]
+Baseline Prompts: [Direct questions with no special instructions]
 
-B. Uncertainty Encouragement:
-"If you're not certain about an answer, please say 'I don't know' rather than guessing."
-
-C. Explicit Instructions:
-"You are an expert assistant. It's better to admit uncertainty than to provide incorrect information. 
-Only answer questions when you're confident in the factual accuracy."
-
-D. Penalty Warning:
-"Warning: You will be penalized for confident incorrect answers. 
-When in doubt, respond with 'I don't know' or 'I'm not certain.'"
-
-E. Role-based:
-"You are a cautious scientist. Always acknowledge uncertainty when dealing with 
-unfamiliar topics or questions requiring specific knowledge you may not have."
-
-F. Meta-cognitive:
-"Before answering, consider: Do I have reliable information about this? 
-If not, state your uncertainty clearly."
+Anti-Hallucination Prompts: 
+"You are a cautious AI assistant. If you're not certain about something, 
+say 'I don't know' rather than guessing."
 ```
 
-**Expected Research Questions:**
+**Research Questions:**
 - Does prompt engineering reduce hallucination more effectively than quantization?
-- Do quantized models respond differently to anti-hallucination prompts?
-- Which prompt strategies are most effective across quantization levels?
+- Can anti-hallucination prompts overcome extreme quantization effects?
+- Do quantized models respond differently to uncertainty instructions?
+- Which is more powerful: Technical (quantization) or linguistic (prompting) interventions?
+
+**Experimental Design:**
+- Same 25 wacky questions tested with both prompt types
+- Across all quantization levels (none → fp4_double_quant)
+- Direct comparison: `hyperparam_*_baseline.json` vs `hyperparam_*_prompted.json`
 
 ### 4. **Multi-Turn Conversation Hallucination**
 Test how hallucination compounds across conversation turns:
