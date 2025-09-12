@@ -227,12 +227,26 @@ class HyperparamHallucinationEvaluator:
                 logger.info(f"  Evaluating prompt {i+1}/{len(prompts)}: {prompt_id}")
                 
                 # Generate response with current hyperparameters
-                response, metrics = self.generate_response(
-                    prompt,
-                    temperature=config["temperature"],
-                    top_p=config["top_p"],
-                    top_k=config["top_k"]
-                )
+                try:
+                    response, metrics = self.generate_response(
+                        prompt,
+                        temperature=config["temperature"],
+                        top_p=config["top_p"],
+                        top_k=config["top_k"]
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to generate response for {prompt_id}: {e}")
+                    response = "[GENERATION_ERROR]"
+                    metrics = {
+                        "input_tokens": 0,
+                        "output_tokens": 0,
+                        "total_tokens": 0,
+                        "generation_time_ms": 0,
+                        "tokens_per_second": 0,
+                        "temperature": config["temperature"],
+                        "top_p": config["top_p"],
+                        "top_k": config["top_k"]
+                    }
                 
                 # Classify response
                 classification = self.classify_response(response, expected, question_type)

@@ -132,169 +132,221 @@ class HyperparamAnalyzer:
     
     def create_hallucination_heatmap(self, data: Dict[str, Any], output_dir: str) -> str:
         """Create heatmap of hallucination rates across quantization and temperature."""
-        # Prepare data for heatmap
-        quantization_types = data['quantization_types']
-        configs = data['hyperparameter_configs']
-        
-        heatmap_data = np.zeros((len(quantization_types), len(configs)))
-        
-        for i, quant_type in enumerate(quantization_types):
-            for j, config in enumerate(configs):
-                if config in data['results_matrix'][quant_type]:
-                    results = data['results_matrix'][quant_type][config]
-                    rates = self.calculate_hallucination_rates(results)
-                    heatmap_data[i, j] = rates['hallucination_rate'] * 100
-        
-        # Create heatmap
-        plt.figure(figsize=(14, 8))
-        sns.heatmap(
-            heatmap_data,
-            xticklabels=[c.replace('temp_', 'T').replace('_topp_', ' P').replace('_topk_', ' K') for c in configs],
-            yticklabels=quantization_types,
-            annot=True,
-            fmt='.1f',
-            cmap='Reds',
-            cbar_kws={'label': 'Hallucination Rate (%)'}
-        )
-        plt.title('Hallucination Rates: Quantization × Hyperparameters', fontsize=16, fontweight='bold')
-        plt.xlabel('Hyperparameter Configuration', fontsize=12)
-        plt.ylabel('Quantization Type', fontsize=12)
-        plt.xticks(rotation=45, ha='right')
-        plt.tight_layout()
-        
-        output_path = f"{output_dir}/hallucination_heatmap.png"
-        plt.savefig(output_path, dpi=300, bbox_inches='tight')
-        plt.close()
-        
-        return output_path
+        try:
+            # Prepare data for heatmap
+            quantization_types = data['quantization_types']
+            configs = data['hyperparameter_configs']
+            
+            if not quantization_types or not configs:
+                logger.warning("No quantization types or configs found for heatmap")
+                return ""
+            
+            heatmap_data = np.zeros((len(quantization_types), len(configs)))
+            
+            for i, quant_type in enumerate(quantization_types):
+                for j, config in enumerate(configs):
+                    if config in data['results_matrix'][quant_type]:
+                        results = data['results_matrix'][quant_type][config]
+                        if results:  # Check if results exist
+                            rates = self.calculate_hallucination_rates(results)
+                            heatmap_data[i, j] = rates['hallucination_rate'] * 100
+            
+            # Create heatmap
+            plt.figure(figsize=(14, 8))
+            sns.heatmap(
+                heatmap_data,
+                xticklabels=[c.replace('temp_', 'T').replace('_topp_', ' P').replace('_topk_', ' K') for c in configs],
+                yticklabels=quantization_types,
+                annot=True,
+                fmt='.1f',
+                cmap='Reds',
+                cbar_kws={'label': 'Hallucination Rate (%)'}
+            )
+            plt.title('Hallucination Rates: Quantization × Hyperparameters', fontsize=16, fontweight='bold')
+            plt.xlabel('Hyperparameter Configuration', fontsize=12)
+            plt.ylabel('Quantization Type', fontsize=12)
+            plt.xticks(rotation=45, ha='right')
+            plt.tight_layout()
+            
+            output_path = f"{output_dir}/hallucination_heatmap.png"
+            plt.savefig(output_path, dpi=300, bbox_inches='tight')
+            plt.close()
+            
+            return output_path
+            
+        except Exception as e:
+            logger.error(f"Failed to create hallucination heatmap: {e}")
+            plt.close()  # Ensure plot is closed even on error
+            return ""
     
     def create_temperature_sensitivity_plot(self, data: Dict[str, Any], output_dir: str) -> str:
         """Create line plot showing temperature sensitivity."""
-        plt.figure(figsize=(12, 8))
-        
-        colors = sns.color_palette("husl", len(data['quantization_types']))
-        
-        for i, quant_type in enumerate(data['quantization_types']):
-            temperatures = []
-            hallucination_rates = []
+        try:
+            plt.figure(figsize=(12, 8))
             
-            # Extract temperature and hallucination rate pairs
-            for config in data['hyperparameter_configs']:
-                if config in data['results_matrix'][quant_type]:
-                    # Parse temperature from config name
-                    temp_str = config.split('temp_')[1].split('_')[0]
-                    temp = float(temp_str)
-                    
-                    results = data['results_matrix'][quant_type][config]
-                    rates = self.calculate_hallucination_rates(results)
-                    
-                    temperatures.append(temp)
-                    hallucination_rates.append(rates['hallucination_rate'] * 100)
+            if not data['quantization_types']:
+                logger.warning("No quantization types found for temperature sensitivity plot")
+                plt.close()
+                return ""
             
-            # Sort by temperature
-            sorted_pairs = sorted(zip(temperatures, hallucination_rates))
-            temps, rates = zip(*sorted_pairs) if sorted_pairs else ([], [])
+            colors = sns.color_palette("husl", len(data['quantization_types']))
             
-            plt.plot(temps, rates, marker='o', linewidth=2, markersize=8, 
-                    label=f'{quant_type}', color=colors[i])
-        
-        plt.title('Temperature Sensitivity: Hallucination Rate vs Temperature', fontsize=16, fontweight='bold')
-        plt.xlabel('Temperature', fontsize=12)
-        plt.ylabel('Hallucination Rate (%)', fontsize=12)
-        plt.legend(title='Quantization Type', bbox_to_anchor=(1.05, 1), loc='upper left')
-        plt.grid(True, alpha=0.3)
-        plt.tight_layout()
-        
-        output_path = f"{output_dir}/temperature_sensitivity.png"
-        plt.savefig(output_path, dpi=300, bbox_inches='tight')
-        plt.close()
-        
-        return output_path
+            for i, quant_type in enumerate(data['quantization_types']):
+                temperatures = []
+                hallucination_rates = []
+                
+                # Extract temperature and hallucination rate pairs
+                for config in data['hyperparameter_configs']:
+                    if config in data['results_matrix'][quant_type]:
+                        try:
+                            # Parse temperature from config name
+                            temp_str = config.split('temp_')[1].split('_')[0]
+                            temp = float(temp_str)
+                            
+                            results = data['results_matrix'][quant_type][config]
+                            if results:  # Check if results exist
+                                rates = self.calculate_hallucination_rates(results)
+                                temperatures.append(temp)
+                                hallucination_rates.append(rates['hallucination_rate'] * 100)
+                        except (IndexError, ValueError) as e:
+                            logger.warning(f"Failed to parse temperature from config {config}: {e}")
+                            continue
+                
+                # Sort by temperature
+                sorted_pairs = sorted(zip(temperatures, hallucination_rates))
+                temps, rates = zip(*sorted_pairs) if sorted_pairs else ([], [])
+                
+                if temps:  # Only plot if we have data
+                    plt.plot(temps, rates, marker='o', linewidth=2, markersize=8, 
+                            label=f'{quant_type}', color=colors[i])
+            
+            plt.title('Temperature Sensitivity: Hallucination Rate vs Temperature', fontsize=16, fontweight='bold')
+            plt.xlabel('Temperature', fontsize=12)
+            plt.ylabel('Hallucination Rate (%)', fontsize=12)
+            plt.legend(title='Quantization Type', bbox_to_anchor=(1.05, 1), loc='upper left')
+            plt.grid(True, alpha=0.3)
+            plt.tight_layout()
+            
+            output_path = f"{output_dir}/temperature_sensitivity.png"
+            plt.savefig(output_path, dpi=300, bbox_inches='tight')
+            plt.close()
+            
+            return output_path
+            
+        except Exception as e:
+            logger.error(f"Failed to create temperature sensitivity plot: {e}")
+            plt.close()
+            return ""
     
     def create_question_type_comparison(self, data: Dict[str, Any], output_dir: str) -> str:
         """Create comparison of performance across question types."""
-        fig, axes = plt.subplots(2, 3, figsize=(18, 10))
-        axes = axes.flatten()
-        
-        for i, q_type in enumerate(self.question_types):
-            ax = axes[i]
+        try:
+            fig, axes = plt.subplots(2, 3, figsize=(18, 10))
+            axes = axes.flatten()
             
-            quant_types = []
-            refusal_rates = []
-            hallucination_rates = []
-            
-            for quant_type in data['quantization_types']:
-                # Aggregate all results for this question type and quantization
-                all_results = []
-                for config in data['hyperparameter_configs']:
-                    if config in data['question_performance'][quant_type][q_type]:
-                        all_results.extend(data['question_performance'][quant_type][q_type][config])
+            for i, q_type in enumerate(self.question_types):
+                if i >= len(axes):
+                    break
+                    
+                ax = axes[i]
                 
-                if all_results:
-                    rates = self.calculate_hallucination_rates(all_results)
-                    quant_types.append(quant_type)
-                    refusal_rates.append(rates['refusal_rate'] * 100)
-                    hallucination_rates.append(rates['hallucination_rate'] * 100)
+                quant_types = []
+                refusal_rates = []
+                hallucination_rates = []
+                
+                for quant_type in data['quantization_types']:
+                    # Aggregate all results for this question type and quantization
+                    all_results = []
+                    for config in data['hyperparameter_configs']:
+                        if config in data['question_performance'][quant_type][q_type]:
+                            all_results.extend(data['question_performance'][quant_type][q_type][config])
+                    
+                    if all_results:
+                        rates = self.calculate_hallucination_rates(all_results)
+                        quant_types.append(quant_type)
+                        refusal_rates.append(rates['refusal_rate'] * 100)
+                        hallucination_rates.append(rates['hallucination_rate'] * 100)
+                
+                if quant_types:  # Only create plot if we have data
+                    x = np.arange(len(quant_types))
+                    width = 0.35
+                    
+                    ax.bar(x - width/2, refusal_rates, width, label='Refusal %', alpha=0.8)
+                    ax.bar(x + width/2, hallucination_rates, width, label='Hallucination %', alpha=0.8)
+                    
+                    ax.set_title(f'{q_type.capitalize()} Questions', fontweight='bold')
+                    ax.set_xlabel('Quantization Type')
+                    ax.set_ylabel('Percentage (%)')
+                    ax.set_xticks(x)
+                    ax.set_xticklabels(quant_types, rotation=45, ha='right')
+                    ax.legend()
+                    ax.grid(True, alpha=0.3)
+                else:
+                    ax.text(0.5, 0.5, f'No data for {q_type}', ha='center', va='center', transform=ax.transAxes)
+                    ax.set_title(f'{q_type.capitalize()} Questions', fontweight='bold')
             
-            x = np.arange(len(quant_types))
-            width = 0.35
+            # Remove empty subplots
+            for j in range(len(self.question_types), len(axes)):
+                axes[j].remove()
             
-            ax.bar(x - width/2, refusal_rates, width, label='Refusal %', alpha=0.8)
-            ax.bar(x + width/2, hallucination_rates, width, label='Hallucination %', alpha=0.8)
+            plt.suptitle('Question Type Performance Across Quantization Levels', fontsize=16, fontweight='bold')
+            plt.tight_layout()
             
-            ax.set_title(f'{q_type.capitalize()} Questions', fontweight='bold')
-            ax.set_xlabel('Quantization Type')
-            ax.set_ylabel('Percentage (%)')
-            ax.set_xticks(x)
-            ax.set_xticklabels(quant_types, rotation=45, ha='right')
-            ax.legend()
-            ax.grid(True, alpha=0.3)
-        
-        # Remove empty subplot
-        if len(self.question_types) < len(axes):
-            axes[-1].remove()
-        
-        plt.suptitle('Question Type Performance Across Quantization Levels', fontsize=16, fontweight='bold')
-        plt.tight_layout()
-        
-        output_path = f"{output_dir}/question_type_comparison.png"
-        plt.savefig(output_path, dpi=300, bbox_inches='tight')
-        plt.close()
-        
-        return output_path
+            output_path = f"{output_dir}/question_type_comparison.png"
+            plt.savefig(output_path, dpi=300, bbox_inches='tight')
+            plt.close()
+            
+            return output_path
+            
+        except Exception as e:
+            logger.error(f"Failed to create question type comparison: {e}")
+            plt.close()
+            return ""
     
     def create_response_length_analysis(self, data: Dict[str, Any], output_dir: str) -> str:
         """Analyze response length patterns across configurations."""
-        plt.figure(figsize=(12, 8))
-        
-        # Create box plot of response lengths by quantization type
-        quant_data = []
-        labels = []
-        
-        for quant_type in data['quantization_types']:
-            lengths = []
-            for config in data['hyperparameter_configs']:
-                if config in data['results_matrix'][quant_type]:
-                    for result in data['results_matrix'][quant_type][config]:
-                        lengths.append(result['metrics']['output_tokens'])
+        try:
+            plt.figure(figsize=(12, 8))
             
-            if lengths:
-                quant_data.append(lengths)
-                labels.append(quant_type)
-        
-        plt.boxplot(quant_data, labels=labels)
-        plt.title('Response Length Distribution by Quantization Type', fontsize=16, fontweight='bold')
-        plt.xlabel('Quantization Type', fontsize=12)
-        plt.ylabel('Output Tokens', fontsize=12)
-        plt.xticks(rotation=45, ha='right')
-        plt.grid(True, alpha=0.3)
-        plt.tight_layout()
-        
-        output_path = f"{output_dir}/response_length_analysis.png"
-        plt.savefig(output_path, dpi=300, bbox_inches='tight')
-        plt.close()
-        
-        return output_path
+            # Create box plot of response lengths by quantization type
+            quant_data = []
+            labels = []
+            
+            for quant_type in data['quantization_types']:
+                lengths = []
+                for config in data['hyperparameter_configs']:
+                    if config in data['results_matrix'][quant_type]:
+                        for result in data['results_matrix'][quant_type][config]:
+                            if 'metrics' in result and 'output_tokens' in result['metrics']:
+                                lengths.append(result['metrics']['output_tokens'])
+                
+                if lengths:
+                    quant_data.append(lengths)
+                    labels.append(quant_type)
+            
+            if quant_data:  # Only create plot if we have data
+                plt.boxplot(quant_data, tick_labels=labels)
+                plt.title('Response Length Distribution by Quantization Type', fontsize=16, fontweight='bold')
+                plt.xlabel('Quantization Type', fontsize=12)
+                plt.ylabel('Output Tokens', fontsize=12)
+                plt.xticks(rotation=45, ha='right')
+                plt.grid(True, alpha=0.3)
+                plt.tight_layout()
+                
+                output_path = f"{output_dir}/response_length_analysis.png"
+                plt.savefig(output_path, dpi=300, bbox_inches='tight')
+                plt.close()
+                
+                return output_path
+            else:
+                logger.warning("No response length data found")
+                plt.close()
+                return ""
+                
+        except Exception as e:
+            logger.error(f"Failed to create response length analysis: {e}")
+            plt.close()
+            return ""
     
     def find_dramatic_examples(self, data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Find the most dramatic response differences across hyperparameters."""
@@ -347,12 +399,24 @@ class HyperparamAnalyzer:
         # Find dramatic examples
         dramatic_examples = self.find_dramatic_examples(data)
         
-        # Generate visualizations
+        # Generate visualizations (filter out failed ones)
         viz_paths = []
-        viz_paths.append(self.create_hallucination_heatmap(data, str(output_dir)))
-        viz_paths.append(self.create_temperature_sensitivity_plot(data, str(output_dir)))
-        viz_paths.append(self.create_question_type_comparison(data, str(output_dir)))
-        viz_paths.append(self.create_response_length_analysis(data, str(output_dir)))
+        
+        heatmap_path = self.create_hallucination_heatmap(data, str(output_dir))
+        if heatmap_path:
+            viz_paths.append(heatmap_path)
+            
+        temp_path = self.create_temperature_sensitivity_plot(data, str(output_dir))
+        if temp_path:
+            viz_paths.append(temp_path)
+            
+        question_path = self.create_question_type_comparison(data, str(output_dir))
+        if question_path:
+            viz_paths.append(question_path)
+            
+        length_path = self.create_response_length_analysis(data, str(output_dir))
+        if length_path:
+            viz_paths.append(length_path)
         
         # Generate analysis report
         analysis = {
@@ -408,7 +472,8 @@ class HyperparamAnalyzer:
             findings.append(f"{behavior_changes} questions showed dramatic refusal behavior changes with temperature")
         
         # Overall patterns
-        findings.append(f"Tested {data['total_responses']} total model responses across hyperparameter configurations")
+        total_responses = len(self.all_results)
+        findings.append(f"Tested {total_responses} total model responses across hyperparameter configurations")
         
         return findings
     
