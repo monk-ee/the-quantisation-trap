@@ -107,7 +107,7 @@ class HyperparamHallucinationEvaluator:
         # Setup quantization
         quantization_config = self._setup_quantization_config()
         
-        # Load model
+        # Load model with retries for GPU errors
         model_kwargs = {
             "pretrained_model_name_or_path": self.model_name,
             "trust_remote_code": True,
@@ -119,8 +119,87 @@ class HyperparamHallucinationEvaluator:
             model_kwargs["device_map"] = "auto"
         else:
             model_kwargs["device_map"] = self.device
-            
-        self.model = AutoModelForCausalLM.from_pretrained(**model_kwargs)
+        
+        # Try loading with retries for hardware errors    
+        max_retries = 5  # Increased retries for ECC errors
+        for attempt in range(max_retries):
+            try:
+                logger.info(f"Model loading attempt {attempt + 1}/{max_retries}")
+                
+                # Aggressive GPU memory clearing before each attempt
+                if torch.cuda.is_available() and attempt > 0:
+                    torch.cuda.empty_cache()
+                    torch.cuda.synchronize()
+                    logger.info(f"Cleared GPU cache before attempt {attempt + 1}")
+                
+                self.model = AutoModelForCausalLM.from_pretrained(**model_kwargs)
+                logger.info(f"Model loaded successfully on attempt {attempt + 1}")
+                break
+                
+            except torch.cuda.OutOfMemoryError as e:
+                logger.error(f"GPU OOM error on attempt {attempt + 1}: {e}")
+                if attempt == max_retries - 1:
+                    logger.error("OOM on final attempt, falling back to CPU")
+                    # Fallback to CPU for OOM
+                    model_kwargs["device_map"] = "cpu"
+                    model_kwargs["torch_dtype"] = torch.float32
+                    if "quantization_config" in model_kwargs:
+                        del model_kwargs["quantization_config"]
+                        logger.warning("Removing quantization for CPU fallback")
+                    self.model = AutoModelForCausalLM.from_pretrained(**model_kwargs)
+                    self.device = "cpu"
+                    break
+                torch.cuda.empty_cache()
+                torch.cuda.synchronize()
+                time.sleep(5)
+                
+            except Exception as e:
+                error_msg = str(e).lower()
+                
+                # Check for various GPU hardware errors
+                is_gpu_error = any(keyword in error_msg for keyword in [
+                    "cuda error", "ecc error", "device-side", "uncorrectable", 
+                    "acceleratorerror", "hardware error", "gpu error"
+                ])
+                
+                if is_gpu_error:
+                    logger.error(f"GPU hardware error on attempt {attempt + 1}: {e}")
+                    
+                    if attempt == max_retries - 1:
+                        logger.error("All GPU attempts failed due to hardware errors, falling back to CPU")
+                        # Final CPU fallback
+                        model_kwargs["device_map"] = "cpu"
+                        model_kwargs["torch_dtype"] = torch.float32
+                        if "quantization_config" in model_kwargs:
+                            del model_kwargs["quantization_config"]
+                            logger.warning("Removing quantization for CPU fallback")
+                        try:
+                            self.model = AutoModelForCausalLM.from_pretrained(**model_kwargs)
+                            self.device = "cpu"
+                            logger.info("Successfully loaded model on CPU after GPU hardware failure")
+                            break
+                        except Exception as cpu_error:
+                            logger.error(f"CPU fallback also failed: {cpu_error}")
+                            raise RuntimeError(f"Both GPU and CPU loading failed. GPU error: {e}, CPU error: {cpu_error}")
+                    
+                    # Aggressive GPU reset between attempts
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+                        torch.cuda.synchronize()
+                        # Try to reset GPU device
+                        try:
+                            torch.cuda.reset_peak_memory_stats()
+                        except:
+                            pass
+                    
+                    # Exponential backoff for hardware errors
+                    sleep_time = min(30, 10 * (2 ** attempt))
+                    logger.info(f"Waiting {sleep_time}s before retry due to hardware error")
+                    time.sleep(sleep_time)
+                    
+                else:
+                    logger.error(f"Non-recoverable error on attempt {attempt + 1}: {e}")
+                    raise
         
         if not quantization_config and self.device == "cuda":
             self.model = self.model.half()
@@ -145,18 +224,46 @@ class HyperparamHallucinationEvaluator:
             
         input_length = inputs["input_ids"].shape[1]
         
-        # Generate response with hyperparameters
-        with torch.no_grad():
-            outputs = self.model.generate(
-                **inputs,
-                max_new_tokens=max_new_tokens,
-                do_sample=True,  # Enable sampling
-                temperature=temperature,
-                top_p=top_p,
-                top_k=top_k,
-                pad_token_id=self.tokenizer.pad_token_id,
-                eos_token_id=self.tokenizer.eos_token_id,
-            )
+        # Generate response with hyperparameters - with GPU error handling
+        try:
+            with torch.no_grad():
+                outputs = self.model.generate(
+                    **inputs,
+                    max_new_tokens=max_new_tokens,
+                    do_sample=True,  # Enable sampling
+                    temperature=temperature,
+                    top_p=top_p,
+                    top_k=top_k,
+                    pad_token_id=self.tokenizer.pad_token_id,
+                    eos_token_id=self.tokenizer.eos_token_id,
+                )
+        except Exception as e:
+            error_msg = str(e).lower()
+            if any(keyword in error_msg for keyword in ["cuda error", "ecc error", "device-side", "uncorrectable", "acceleratorerror"]):
+                logger.error(f"GPU hardware error during generation: {e}")
+                # Clear GPU cache and try once more
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+                    torch.cuda.synchronize()
+                try:
+                    with torch.no_grad():
+                        outputs = self.model.generate(
+                            **inputs,
+                            max_new_tokens=max_new_tokens,
+                            do_sample=True,
+                            temperature=temperature,
+                            top_p=top_p,
+                            top_k=top_k,
+                            pad_token_id=self.tokenizer.pad_token_id,
+                            eos_token_id=self.tokenizer.eos_token_id,
+                        )
+                    logger.info("Generation succeeded after GPU cache clear")
+                except Exception as retry_error:
+                    logger.error(f"Generation failed after retry: {retry_error}")
+                    raise RuntimeError(f"GPU generation failed: {retry_error}")
+            else:
+                logger.error(f"Non-GPU error during generation: {e}")
+                raise
         
         # Extract generated tokens (excluding input)
         generated_tokens = outputs[0][input_length:]
