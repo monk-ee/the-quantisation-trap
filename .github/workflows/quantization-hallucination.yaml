@@ -173,17 +173,31 @@ jobs:
           --max-tokens ${{ github.event.inputs.max_tokens || '80' }} \
           --verbose
 
-    - name: "Hyperparam Sweep - INT8"
-      if: contains(steps.parse_quant.outputs.quantization_types, 'int8') && (github.event.inputs.experiment_type == 'hyperparameter_sweep' || github.event.inputs.experiment_type == '')
+    - name: "Hyperparam Sweep - INT8 (Baseline Prompts)"
+      if: contains(steps.parse_quant.outputs.quantization_types, 'int8') && (github.event.inputs.experiment_type == 'hyperparameter_sweep' || github.event.inputs.experiment_type == '') && (github.event.inputs.prompt_engineering == 'both' || github.event.inputs.prompt_engineering == 'baseline_only' || github.event.inputs.prompt_engineering == '')
       run: |
-        echo "🔬 HYPERPARAM SWEEP - INT8"
-        echo "========================="
+        echo "🔬 HYPERPARAM SWEEP - INT8 (Baseline Prompts)"
+        echo "============================================="
         
         python eval_hallucination_hyperparams.py \
           --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
           --prompts hallucination_quant.jsonl \
           --quantization int8 \
-          --output hyperparam_results/hyperparam_int8.json \
+          --output hyperparam_results/hyperparam_int8_baseline.json \
+          --max-tokens ${{ github.event.inputs.max_tokens || '80' }} \
+          --verbose
+
+    - name: "Hyperparam Sweep - INT8 (Anti-Hallucination Prompts)"
+      if: contains(steps.parse_quant.outputs.quantization_types, 'int8') && (github.event.inputs.experiment_type == 'hyperparameter_sweep' || github.event.inputs.experiment_type == '') && (github.event.inputs.prompt_engineering == 'both' || github.event.inputs.prompt_engineering == 'prompted_only')
+      run: |
+        echo "🔬 HYPERPARAM SWEEP - INT8 (Anti-Hallucination Prompts)"
+        echo "======================================================"
+        
+        python eval_hallucination_hyperparams.py \
+          --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
+          --prompts hallucination_quant_prompted.jsonl \
+          --quantization int8 \
+          --output hyperparam_results/hyperparam_int8_prompted.json \
           --max-tokens ${{ github.event.inputs.max_tokens || '80' }} \
           --verbose
 
@@ -201,17 +215,31 @@ jobs:
           --max-tokens ${{ github.event.inputs.max_tokens || '80' }} \
           --verbose
 
-    - name: "Hyperparam Sweep - NF4"
-      if: contains(steps.parse_quant.outputs.quantization_types, 'nf4') && (github.event.inputs.experiment_type == 'hyperparameter_sweep' || github.event.inputs.experiment_type == '')
+    - name: "Hyperparam Sweep - NF4 (Baseline Prompts)"
+      if: contains(steps.parse_quant.outputs.quantization_types, 'nf4') && (github.event.inputs.experiment_type == 'hyperparameter_sweep' || github.event.inputs.experiment_type == '') && (github.event.inputs.prompt_engineering == 'both' || github.event.inputs.prompt_engineering == 'baseline_only' || github.event.inputs.prompt_engineering == '')
       run: |
-        echo "🔬 HYPERPARAM SWEEP - NF4"
-        echo "========================"
+        echo "🔬 HYPERPARAM SWEEP - NF4 (Baseline Prompts)"
+        echo "============================================"
         
         python eval_hallucination_hyperparams.py \
           --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
           --prompts hallucination_quant.jsonl \
           --quantization nf4 \
-          --output hyperparam_results/hyperparam_nf4.json \
+          --output hyperparam_results/hyperparam_nf4_baseline.json \
+          --max-tokens ${{ github.event.inputs.max_tokens || '80' }} \
+          --verbose
+
+    - name: "Hyperparam Sweep - NF4 (Anti-Hallucination Prompts)"
+      if: contains(steps.parse_quant.outputs.quantization_types, 'nf4') && (github.event.inputs.experiment_type == 'hyperparameter_sweep' || github.event.inputs.experiment_type == '') && (github.event.inputs.prompt_engineering == 'both' || github.event.inputs.prompt_engineering == 'prompted_only')
+      run: |
+        echo "🔬 HYPERPARAM SWEEP - NF4 (Anti-Hallucination Prompts)"
+        echo "====================================================="
+        
+        python eval_hallucination_hyperparams.py \
+          --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
+          --prompts hallucination_quant_prompted.jsonl \
+          --quantization nf4 \
+          --output hyperparam_results/hyperparam_nf4_prompted.json \
           --max-tokens ${{ github.event.inputs.max_tokens || '80' }} \
           --verbose
 
@@ -312,6 +340,15 @@ jobs:
             --results $RESULT_FILES \
             --output hyperparam_results/hyperparam_analysis.json \
             --verbose
+            
+          # Also run specialized prompt vs quantization analysis if both types exist
+          echo ""
+          echo "🧠 GENERATING PROMPT vs QUANTIZATION COMPARISON"
+          echo "==============================================="
+          python prompt_vs_quantization_analysis.py \
+            --results $RESULT_FILES \
+            --output hyperparam_results/prompt_vs_quantization_analysis.json \
+            --verbose
         else
           echo "⚠️ No hyperparam result files found"
         fi
@@ -374,9 +411,21 @@ jobs:
         print(f'Model: {report[\"experiment_summary\"][\"model_name\"]}')
         print(f'Question Categories: {report[\"experiment_summary\"][\"question_categories\"]}')
         print(f'Hyperparameter Configs: {report[\"experiment_summary\"][\"total_hyperparam_configs\"]}')
-        print(f'Quantization Types: {report[\"experiment_summary\"][\"quantization_types\"]}')
+        print(f'Experiment Types: {report[\"experiment_summary\"][\"quantization_types\"]}')
         print(f'Total Responses Analyzed: {report[\"experiment_summary\"][\"total_responses\"]}')
         print()
+        
+        # Show baseline vs prompted comparison if both exist
+        baseline_experiments = [exp for exp in report[\"experiment_summary\"][\"quantization_types\"] if \"_baseline\" in exp]
+        prompted_experiments = [exp for exp in report[\"experiment_summary\"][\"quantization_types\"] if \"_prompted\" in exp]
+        
+        if baseline_experiments and prompted_experiments:
+            print('🧠 PROMPT ENGINEERING COMPARISON:')
+            print('=================================')
+            print(f'Baseline experiments: {len(baseline_experiments)}')
+            print(f'Prompted experiments: {len(prompted_experiments)}')
+            print('Testing: Does prompt engineering beat quantization for reducing hallucination?')
+            print()
         
         # Show key findings
         if 'key_findings' in report:
@@ -405,6 +454,39 @@ jobs:
                     print(f'❌ {filename} (not found)')
             print()
           "
+          
+          # Show prompt vs quantization analysis if available
+          if [ -f "hyperparam_results/prompt_vs_quantization_analysis.json" ]; then
+            echo "🧠 PROMPT ENGINEERING vs QUANTIZATION RESULTS:"
+            echo "=============================================="
+            python -c "
+        import json
+        with open('hyperparam_results/prompt_vs_quantization_analysis.json', 'r') as f:
+            prompt_analysis = json.load(f)
+        
+        summary = prompt_analysis['summary']
+        analysis = prompt_analysis['analysis']
+        
+        print(f'Quantization Types Compared: {summary[\"total_comparisons\"]}')
+        print(f'Prompt Engineering Wins: {summary[\"prompt_engineering_winner\"]}')
+        print(f'Quantization Wins: {summary[\"quantization_winner\"]}')
+        print()
+        
+        if 'prompt_engineering_effectiveness' in analysis:
+            effectiveness = analysis['prompt_engineering_effectiveness']
+            refusal_improvement = effectiveness['overall_refusal_improvement']
+            hallucination_reduction = effectiveness['overall_hallucination_reduction']
+            print(f'🎯 Overall Refusal Rate Improvement: {refusal_improvement:+.1%}')
+            print(f'🎯 Overall Hallucination Rate Reduction: {hallucination_reduction:+.1%}')
+            print()
+        
+        if analysis['key_findings']:
+            print('💡 KEY INSIGHTS:')
+            for finding in analysis['key_findings']:
+                print(f'• {finding}')
+            print()
+            "
+          fi
         fi
         
         echo ""

@@ -44,11 +44,23 @@ class HyperparamAnalyzer:
                 data = json.load(f)
                 
             quantization_type = data["quantization_type"]
-            self.results_by_quantization[quantization_type] = data
             
-            # Add quantization type to each result for easier processing
+            # Handle baseline/prompted naming for same quantization type
+            file_basename = Path(file_path).stem
+            if file_basename.endswith('_baseline'):
+                experiment_key = f"{quantization_type}_baseline"
+            elif file_basename.endswith('_prompted'):
+                experiment_key = f"{quantization_type}_prompted"
+            else:
+                experiment_key = quantization_type
+                
+            self.results_by_quantization[experiment_key] = data
+            
+            # Add quantization type and experiment info to each result
             for result in data["results"]:
                 result["quantization_type"] = quantization_type
+                result["experiment_type"] = experiment_key
+                result["prompt_type"] = "prompted" if "prompted" in experiment_key else "baseline"
                 self.all_results.append(result)
                 
         logger.info(f"Loaded {len(self.all_results)} total results across {len(self.results_by_quantization)} quantization types")
