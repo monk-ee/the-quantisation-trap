@@ -123,23 +123,43 @@ class HyperparamAnalyzer:
     def calculate_temperature_sensitivity(self, data: Dict[str, Any]) -> Dict[str, float]:
         """Calculate how sensitive each quantization type is to temperature changes."""
         sensitivity_scores = {}
-        
+
         for quant_type in data['quantization_types']:
-            temp_hallucination_rates = []
-            
-            # Get hallucination rates for each temperature
+            temp_data = []
+
+            # Get temperature and hallucination rate pairs
             for config in data['hyperparameter_configs']:
                 if config in data['results_matrix'][quant_type]:
                     results = data['results_matrix'][quant_type][config]
-                    rates = self.calculate_hallucination_rates(results)
-                    temp_hallucination_rates.append(rates['hallucination_rate'])
-            
-            # Calculate variance as sensitivity measure
-            if len(temp_hallucination_rates) > 1:
-                sensitivity_scores[quant_type] = np.var(temp_hallucination_rates)
+                    if results:  # Only process if we have results
+                        try:
+                            # Extract temperature from config name
+                            temp_str = config.split('temp_')[1].split('_')[0]
+                            temp = float(temp_str)
+                            rates = self.calculate_hallucination_rates(results)
+                            temp_data.append((temp, rates['hallucination_rate']))
+                        except (IndexError, ValueError) as e:
+                            logger.warning(f"Failed to parse temperature from config {config}: {e}")
+                            continue
+
+            # Calculate sensitivity using multiple metrics
+            if len(temp_data) >= 2:
+                # Sort by temperature
+                temp_data.sort(key=lambda x: x[0])
+                temps, rates = zip(*temp_data)
+
+                # Use multiple sensitivity measures
+                variance = np.var(rates)
+                range_diff = max(rates) - min(rates)
+
+                # Calculate correlation with temperature (how much rate changes with temp)
+                temp_corr = abs(np.corrcoef(temps, rates)[0, 1]) if len(set(rates)) > 1 else 0.0
+
+                # Combined sensitivity score (emphasizes range and correlation)
+                sensitivity_scores[quant_type] = range_diff + (temp_corr * 0.5) + (variance * 2)
             else:
                 sensitivity_scores[quant_type] = 0.0
-                
+
         return sensitivity_scores
     
     def create_hallucination_heatmap(self, data: Dict[str, Any], output_dir: str) -> str:
