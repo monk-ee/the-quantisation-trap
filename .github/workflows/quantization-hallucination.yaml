@@ -50,7 +50,7 @@ jobs:
       - ram=64
       - architecture=x64
       - tenancy=spot
-    timeout-minutes: 180
+    timeout-minutes: 90
     env:
       HF_TOKEN: ${{ secrets.HF_TOKEN }}
       HF_HUB_ENABLE_HF_TRANSFER: 1
@@ -144,7 +144,7 @@ jobs:
       id: parse_quant
       run: |
         # Parse comma-separated quantization types
-        QUANT_TYPES="${{ github.event.inputs.test_subset || 'none,int8,nf4,fp4,nf4_double_quant,fp4_double_quant' }}"
+        QUANT_TYPES="${{ github.event.inputs.test_subset || 'none,int8,nf4,fp4_double_quant' }}"
         echo "quantization_types=$QUANT_TYPES" >> $GITHUB_OUTPUT
         echo "🎯 Testing quantization types: $QUANT_TYPES"
 

@@ -427,22 +427,16 @@ def main():
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
         
-    # Define hyperparameter sweep configurations
+    # Define hyperparameter sweep configurations (optimized for speed)
     hyperparam_configs = [
         # Conservative (low temperature, focused sampling)
         {"temperature": 0.3, "top_p": 0.8, "top_k": 20},
-        {"temperature": 0.5, "top_p": 0.85, "top_k": 30},
-        
+
         # Balanced
         {"temperature": 0.7, "top_p": 0.9, "top_k": 50},
-        {"temperature": 0.8, "top_p": 0.9, "top_k": 50},
-        
+
         # Creative (high temperature, diverse sampling)
-        {"temperature": 1.0, "top_p": 0.95, "top_k": 100},
         {"temperature": 1.2, "top_p": 0.95, "top_k": 100},
-        
-        # Extreme creativity (test model limits)
-        {"temperature": 1.5, "top_p": 0.98, "top_k": 200},
     ]
     
     logger.info(f"Testing {len(hyperparam_configs)} hyperparameter configurations")
