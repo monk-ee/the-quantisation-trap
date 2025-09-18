@@ -285,4 +285,4 @@ runs/
 ehthumbs.db
 Thumbs.db
 
-vcs.xml
+.idea/vcs.xml
