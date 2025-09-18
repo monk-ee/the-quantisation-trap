@@ -27,7 +27,7 @@ jobs:
       - ram=64
       - architecture=x64
       - tenancy=spot
-    timeout-minutes: 240  # 4 hours for full experiment
+    timeout-minutes: 55   # Under 1 hour total
     env:
       HF_TOKEN: ${{ secrets.HF_TOKEN }}
       HF_HUB_ENABLE_HF_TRANSFER: 1

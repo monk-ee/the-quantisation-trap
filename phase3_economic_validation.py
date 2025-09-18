@@ -75,9 +75,9 @@ def create_economic_test_dataset(output_file: str) -> None:
         frequency = data["frequency_pct"]
         questions = data["questions"]
 
-        # Generate questions proportional to frequency (out of 100 total)
-        num_questions = frequency
-        questions_per_type = num_questions // len(questions)
+        # Generate fewer questions for speed (out of 40 total)
+        num_questions = frequency // 3  # Reduce by 3x
+        questions_per_type = max(1, num_questions // len(questions))
 
         for q in questions:
             for i in range(questions_per_type):
@@ -113,20 +113,13 @@ def get_business_value(category: str) -> float:
 def run_economic_benchmark(dataset_file: str, model_name: str, output_dir: str):
     """Run economic validation across production-optimized configurations."""
 
-    # Test economically relevant configurations
+    # Test key economic configurations (reduced for speed)
     test_configs = [
-        # Production-safe configurations
-        {"name": "production_safe", "quant": "none", "temp": 0.3, "description": "Conservative baseline"},
-        {"name": "cost_optimized", "quant": "nf4", "temp": 0.3, "description": "60% memory reduction, conservative"},
+        # Core configurations only
+        {"name": "baseline", "quant": "none", "temp": 0.3, "description": "Conservative baseline"},
+        {"name": "cost_optimized", "quant": "nf4", "temp": 0.3, "description": "60% memory reduction"},
         {"name": "aggressive_cost", "quant": "fp4_double_quant", "temp": 0.3, "description": "65% memory reduction"},
-
-        # Higher performance configurations
-        {"name": "balanced", "quant": "int8", "temp": 0.7, "description": "Moderate compression, better creativity"},
-        {"name": "high_performance", "quant": "none", "temp": 0.7, "description": "No compression, optimal temperature"},
-
-        # Edge case configurations
-        {"name": "maximum_cost_reduction", "quant": "fp4_double_quant", "temp": 0.1, "description": "Extreme cost cutting"},
-        {"name": "risky_creative", "quant": "nf4", "temp": 1.2, "description": "Cost efficient but creative"}
+        {"name": "risky_creative", "quant": "nf4", "temp": 1.0, "description": "Cost + creativity risk"}
     ]
 
     results = {}

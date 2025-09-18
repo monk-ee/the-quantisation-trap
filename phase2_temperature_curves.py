@@ -39,9 +39,9 @@ def create_temperature_sweep_dataset(output_file: str) -> None:
         {"id": "curve_10", "prompt": "Do heavier objects fall faster than lighter ones in a vacuum?", "expected": "no", "type": "known"}
     ]
 
-    # Replicate 20 times for statistical power (N=200 per temperature)
+    # Replicate 5 times for speed (N=50 per temperature)
     expanded_questions = []
-    for i in range(20):
+    for i in range(5):
         for q in questions:
             expanded_q = q.copy()
             expanded_q["id"] = f"{q['id']}_rep{i+1:02d}"
@@ -57,8 +57,8 @@ def create_temperature_sweep_dataset(output_file: str) -> None:
 def run_temperature_sweep(dataset_file: str, model_name: str, quantization_type: str, output_dir: str):
     """Run fine-grained temperature sweep for one quantization type."""
 
-    # Fine-grained temperature range: 0.1 to 2.0 in 0.1 increments
-    temperatures = [round(t * 0.1, 1) for t in range(1, 21)]  # 0.1, 0.2, ..., 2.0
+    # Focused temperature range: key points only
+    temperatures = [0.3, 0.7, 1.0, 1.5]  # 4 strategic points instead of 20
 
     logger.info(f"Testing {quantization_type} across {len(temperatures)} temperature points")
 

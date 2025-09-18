@@ -58,7 +58,7 @@ def create_validation_dataset(output_file: str) -> None:
     expanded_questions = []
 
     for domain, questions in domains.items():
-        for i in range(50):  # 50 questions per domain
+        for i in range(10):  # 10 questions per domain (reduced from 50)
             base_q = questions[i % len(questions)]
             question = {
                 "id": f"{domain}_{i+1:02d}",
