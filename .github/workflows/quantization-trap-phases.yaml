@@ -1,0 +1,278 @@
+name: Quantization Trap - Three Phase Experiment
+
+on:
+  workflow_dispatch:
+    inputs:
+      phases:
+        description: 'Which phases to run'
+        required: true
+        type: choice
+        options:
+          - all
+          - phase1
+          - phase2
+          - phase3
+        default: 'all'
+      model_name:
+        description: 'Hugging Face model name'
+        required: false
+        default: 'meta-llama/Meta-Llama-3-8B-Instruct'
+
+jobs:
+  quantization-trap-experiment:
+    runs-on:
+      - machine
+      - gpu=l40s
+      - cpu=8
+      - ram=64
+      - architecture=x64
+      - tenancy=spot
+    timeout-minutes: 240  # 4 hours for full experiment
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      HF_HUB_ENABLE_HF_TRANSFER: 1
+      HF_HUB_DOWNLOAD_TIMEOUT: 120
+      CUDA_LAUNCH_BLOCKING: 1
+      TORCH_USE_CUDA_DSA: 1
+      PYTORCH_CUDA_ALLOC_CONF: "max_split_size_mb:512"
+      CUDA_DEVICE_MAX_CONNECTIONS: 1
+      TOKENIZERS_PARALLELISM: false
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+
+    - name: Install dependencies
+      run: |
+        echo "🚀 Installing ML dependencies for quantization experiments..."
+        uv pip install -r requirements-hf.txt --system
+
+        # Verify critical dependencies
+        echo "🧪 Verifying dependencies..."
+        python -c "import torch; print('✅ PyTorch:', torch.__version__, '| CUDA available:', torch.cuda.is_available())"
+        python -c "import transformers; print('✅ transformers:', transformers.__version__)"
+        python -c "import bitsandbytes; print('✅ bitsandbytes available')" || {
+          echo "💥 bitsandbytes missing - required for quantization!"
+          exit 1
+        }
+        python -c "import scipy; print('✅ scipy available')"
+        python -c "import matplotlib; print('✅ matplotlib available')"
+
+        # GPU health check
+        python -c "
+        import torch
+        if torch.cuda.is_available():
+            print('✅ GPU:', torch.cuda.get_device_name(0))
+            print('✅ Memory:', torch.cuda.get_device_properties(0).total_memory / 1024**3, 'GB')
+            # Test basic operations
+            test = torch.randn(1000, 1000, device='cuda')
+            result = torch.mm(test, test.T)
+            print('✅ GPU operations working')
+        "
+
+    - name: Login to Hugging Face
+      run: |
+        python -c "from huggingface_hub import login; login('${{ secrets.HF_TOKEN }}')"
+
+    - name: Create output directories
+      run: |
+        mkdir -p quantization_trap_results
+        echo "📁 Created output directories"
+        echo "🧪 Starting Quantization Trap Experiment..."
+        echo "📋 Phases: ${{ github.event.inputs.phases || 'all' }}"
+        echo "📋 Model: ${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}"
+
+    - name: "Phase 1: Statistical Validation (N=50 per config)"
+      if: github.event.inputs.phases == 'all' || github.event.inputs.phases == 'phase1'
+      run: |
+        echo "📊 PHASE 1: STATISTICAL VALIDATION"
+        echo "================================="
+        echo "Testing: Is the quantization improvement statistically significant?"
+
+        # Create dataset
+        python phase1_validation_experiment.py \
+          --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
+          --create-dataset \
+          --output-dir quantization_trap_results/phase1_results
+
+        echo "✅ Phase 1 dataset created (200 questions across 4 domains)"
+
+        # Run validation experiment (this will test all quantization types)
+        python phase1_validation_experiment.py \
+          --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
+          --run-experiment \
+          --output-dir quantization_trap_results/phase1_results
+
+        echo "✅ Phase 1 experiments completed"
+
+        # Analyze with statistical significance testing
+        python phase1_validation_experiment.py \
+          --analyze \
+          --output-dir quantization_trap_results/phase1_results
+
+        echo "✅ Phase 1 analysis completed with statistical tests"
+
+    - name: "Phase 2: Temperature Degradation Curves"
+      if: github.event.inputs.phases == 'all' || github.event.inputs.phases == 'phase2'
+      run: |
+        echo "🌡️ PHASE 2: TEMPERATURE DEGRADATION CURVES"
+        echo "=========================================="
+        echo "Testing: At what temperature does each quantization type break?"
+
+        # Create temperature sweep dataset
+        python phase2_temperature_curves.py \
+          --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
+          --quantization none \
+          --create-dataset \
+          --output-dir quantization_trap_results/phase2_results
+
+        echo "✅ Phase 2 dataset created (temperature sweep 0.1-2.0)"
+
+        # Run temperature sweeps for each quantization type
+        for quant_type in none int8 nf4 fp4_double_quant; do
+          echo "🌡️ Running temperature sweep for $quant_type..."
+          python phase2_temperature_curves.py \
+            --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
+            --quantization $quant_type \
+            --run-sweep \
+            --output-dir quantization_trap_results/phase2_results
+
+          echo "✅ Completed temperature curve for $quant_type"
+        done
+
+        # Analyze temperature curves
+        python phase2_temperature_curves.py \
+          --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
+          --quantization none \
+          --analyze \
+          --output-dir quantization_trap_results/phase2_results
+
+        echo "✅ Phase 2 analysis completed with curve fitting"
+
+    - name: "Phase 3: Economic Validation"
+      if: github.event.inputs.phases == 'all' || github.event.inputs.phases == 'phase3'
+      run: |
+        echo "💰 PHASE 3: ECONOMIC VALIDATION"
+        echo "==============================="
+        echo "Testing: What is the cost per correct answer for each configuration?"
+
+        # Create economic validation dataset
+        python phase3_economic_validation.py \
+          --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
+          --create-dataset \
+          --output-dir quantization_trap_results/phase3_results
+
+        echo "✅ Phase 3 dataset created (production workload simulation)"
+
+        # Run economic benchmark
+        python phase3_economic_validation.py \
+          --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
+          --run-benchmark \
+          --output-dir quantization_trap_results/phase3_results
+
+        echo "✅ Phase 3 economic analysis completed"
+
+    - name: Generate Final Comprehensive Report
+      run: |
+        echo "📋 GENERATING FINAL REPORT"
+        echo "========================="
+
+        python run_all_phases.py \
+          --model "${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}" \
+          --phases none \
+          --output-dir quantization_trap_results
+
+        echo "📊 QUANTIZATION TRAP EXPERIMENT RESULTS"
+        echo "======================================="
+
+        # Display key findings from each phase
+        if [ -f "quantization_trap_results/phase1_results/phase1_analysis.json" ]; then
+          echo "✅ Phase 1: Statistical validation completed"
+          python -c "
+          import json
+          with open('quantization_trap_results/phase1_results/phase1_analysis.json') as f:
+              data = json.load(f)
+          for finding in data.get('key_findings', []):
+              print(f'• {finding}')
+          "
+        fi
+
+        if [ -f "quantization_trap_results/phase2_results/phase2_analysis.json" ]; then
+          echo "✅ Phase 2: Temperature curves mapped"
+          python -c "
+          import json
+          with open('quantization_trap_results/phase2_results/phase2_analysis.json') as f:
+              data = json.load(f)
+          thresholds = data.get('degradation_thresholds', {})
+          for quant, thresh_data in thresholds.items():
+              degradation = thresh_data.get('degradation_temperature', 'No degradation')
+              peak = thresh_data.get('peak_temperature', 'Unknown')
+              print(f'• {quant}: Degrades at {degradation}, Peak at {peak}')
+          "
+        fi
+
+        if [ -f "quantization_trap_results/phase3_results/economic_analysis.json" ]; then
+          echo "✅ Phase 3: Economic validation completed"
+          python -c "
+          import json
+          with open('quantization_trap_results/phase3_results/economic_analysis.json') as f:
+              data = json.load(f)
+          rankings = data.get('economic_rankings', {})
+          if 'best_cost_per_correct' in rankings:
+              print('💰 Most cost-efficient configurations:')
+              for i, config in enumerate(rankings['best_cost_per_correct'][:3], 1):
+                  print(f'  {i}. {config}')
+          "
+        fi
+
+    - name: Upload Experiment Results
+      uses: actions/upload-artifact@v4
+      with:
+        name: quantization-trap-experiment-results
+        path: |
+          quantization_trap_results/
+        retention-days: 30
+
+    - name: Display Experiment Summary
+      run: |
+        echo "🎯 ============================================"
+        echo "   QUANTIZATION TRAP EXPERIMENT COMPLETE"
+        echo "============================================="
+
+        # Count total responses analyzed
+        TOTAL_RESPONSES=0
+        for file in quantization_trap_results/**/**.json; do
+          if [[ -f "$file" ]] && [[ "$file" != *"analysis"* ]]; then
+            COUNT=$(python -c "
+            import json
+            try:
+                with open('$file') as f:
+                    data = json.load(f)
+                    print(len(data.get('results', [])))
+            except:
+                print(0)
+            ")
+            TOTAL_RESPONSES=$((TOTAL_RESPONSES + COUNT))
+          fi
+        done
+
+        echo "📊 Total Model Responses Analyzed: $TOTAL_RESPONSES"
+        echo "📁 Phases Completed: ${{ github.event.inputs.phases || 'all' }}"
+        echo "🤖 Model: ${{ github.event.inputs.model_name || 'meta-llama/Meta-Llama-3-8B-Instruct' }}"
+
+        if [ -f "quantization_trap_results/quantization_trap_final_report.json" ]; then
+          echo "📋 Final Report: quantization_trap_final_report.json"
+        fi
+
+        echo ""
+        echo "🔬 THE QUANTIZATION TRAP INVESTIGATION:"
+        echo "Does quantization actually hurt factual accuracy?"
+        echo "Download artifacts for detailed analysis."
+        echo "============================================="

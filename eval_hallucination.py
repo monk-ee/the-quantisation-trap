@@ -185,23 +185,51 @@ class HallucinationEvaluator:
     def classify_response(self, response: str, expected: str, question_type: str) -> Dict[str, bool]:
         """Classify response as refusal, correct, or incorrect guess."""
         response_lower = response.lower()
-        
+
         # Check for refusal/uncertainty markers
         is_refusal = any(marker in response_lower for marker in self.uncertainty_markers)
-        
+
         # Check correctness for "known" questions
         is_correct = False
         if question_type == "known":
             expected_lower = expected.lower()
-            # Simple containment check - could be made more sophisticated
-            is_correct = expected_lower in response_lower
-        
+
+            # Physics-specific classification for fall rate questions
+            if "fall" in expected_lower and "rate" in expected_lower:
+                # Check for correct concepts
+                has_correct_fall_concept = "same rate" in response_lower or "equal rate" in response_lower
+
+                # Check for contradictory/wrong physics statements
+                wrong_physics_indicators = [
+                    "float upwards", "floats upward", "banana floats", "lighter floats",
+                    "heavier falls faster", "different speeds", "different rates",
+                    "banana first", "ball first", "one before", "banana slower", "ball slower"
+                ]
+
+                has_wrong_physics = any(indicator in response_lower for indicator in wrong_physics_indicators)
+
+                # Check for incoherent/contradictory responses
+                # If response contains both correct and wrong statements, it's incoherent
+                if has_correct_fall_concept and has_wrong_physics:
+                    is_correct = False  # Contradictory response
+                elif has_correct_fall_concept and not has_wrong_physics:
+                    is_correct = True   # Consistent correct response
+                else:
+                    is_correct = False  # Wrong or incomplete
+
+            else:
+                # Fallback for non-physics questions - word overlap approach
+                expected_words = set(expected_lower.split())
+                response_words = set(response_lower.split())
+                overlap = len(expected_words.intersection(response_words))
+                is_correct = overlap >= len(expected_words) * 0.6  # Stricter threshold
+
         # Classify as incorrect guess if not refusal and not correct
         is_incorrect_guess = not is_refusal and not is_correct
-        
+
         return {
             "is_refusal": is_refusal,
-            "is_correct": is_correct, 
+            "is_correct": is_correct,
             "is_incorrect_guess": is_incorrect_guess
         }
     
